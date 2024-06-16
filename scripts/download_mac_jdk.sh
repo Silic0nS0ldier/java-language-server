@@ -6,8 +6,8 @@ set -e
 # Download mac jdk
 mkdir -p jdks/mac
 cd jdks/mac
-curl https://download.java.net/java/GA/jdk18.0.1.1/65ae32619e2f40f3a9af3af1851d6e19/2/GPL/openjdk-18.0.1.1_macos-x64_bin.tar.gz > mac.tar.gz
+curl https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_mac_hotspot_21.0.3_9.tar.gz -Lo mac.tar.gz
 gunzip -c mac.tar.gz | tar xopf -
 rm mac.tar.gz
-mv jdk-18.0.1.1.jdk jdk-18
+mv jdk-21.0.3+9 jdk-21
 cd ../..

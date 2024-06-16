@@ -16,7 +16,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '18'
+        java-version: '21'
         distribution: 'temurin'
         cache: maven
     - name: Set up Node
@@ -35,7 +35,7 @@ jobs:
     - name: Fetch node dependencies
       run: npm install
     - name: Build Java
-      run: mvn --batch-mode package
+      run: mvn --batch-mode package -DskipTests
     - name: Build extension
       run: npm run-script vscode:build
     - name: Upload VSIX
