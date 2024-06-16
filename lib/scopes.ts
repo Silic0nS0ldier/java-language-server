@@ -106,7 +106,7 @@ function checkFileExists(filePath: string): Promise<boolean> {
     })
 }
 
-function readFileText(filePath: string, encoding: string = "utf8"): Promise<string> {
+function readFileText(filePath: string, encoding: BufferEncoding = "utf8"): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         fs.readFile(filePath, encoding, (err, data) => {
             if (err) {
