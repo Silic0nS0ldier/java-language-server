@@ -8,6 +8,8 @@
 > - Fixed tests.
 > - Updated dependencies.
 >
+> The focus of this fork is supporting Java alongside Bazel, future releases may drop non-Bazel support in favour of a deeper integration.
+>
 > This has been tested against Java code in the [Bazel repository](https://github.com/bazelbuild/bazel). _Most_ imports correctly resolve.
 >
 > **Resolved Import**
