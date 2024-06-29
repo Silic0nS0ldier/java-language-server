@@ -170,7 +170,9 @@ public class LSP {
         OutputStream send
     ) {
         // Forward all logging to LSP client
-        Logger.getLogger("").addHandler(new LogHandler((method, params) -> { notifyClient(send, method, params); }));
+        Logger.getLogger("").addHandler(new LogHandler((method, params) -> {
+            notifyClient(send, method, params);
+        }));
         
         var server = serverFactory.apply(new RealClient(send));
         var pending = new ArrayBlockingQueue<Message>(10);
