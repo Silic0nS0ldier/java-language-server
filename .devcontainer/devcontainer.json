@@ -24,7 +24,7 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"georgewfraser.vscode-javac"
+				"siliconsoldier.java-with-bazel"
 			]
 		}
 	},

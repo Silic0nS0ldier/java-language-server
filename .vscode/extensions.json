@@ -1,8 +1,9 @@
 {
     "recommendations": [
-        "georgewfraser.vscode-javac"
+        "siliconsoldier.java-with-bazel"
     ],
     "unwantedRecommendations": [
-        "vscjava.vscode-java-pack"
+        "vscjava.vscode-java-pack",
+        "georgewfraser.vscode-javac"
     ]
 }
