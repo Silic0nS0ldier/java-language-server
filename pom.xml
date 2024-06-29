@@ -16,6 +16,7 @@
         </repository>
     </distributionManagement>
 
+    <!-- Update dist/launch*.sh and lib/extension.ts when these are changed -->
     <dependencies>
         <!-- JSON support -->
         <dependency>
