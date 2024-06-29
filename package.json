@@ -1,6 +1,6 @@
 {
-    "name": "java-lsp",
-    "displayName": "Java Language Support",
+    "name": "java-with-bazel",
+    "displayName": "Java+Bazel Language Support",
     "description": "Fork of George Fraser's Java Langauge Server extension with updates and improved Bazel support.",
     "icon": "icon.png",
     "version": "0.2.47",
