@@ -122,11 +122,6 @@
                 }
             }
         },
-        "configurationDefaults": {
-            "[java]": {
-                "editor.formatOnSave": true
-            }
-        },
         "breakpoints": [
             {
                 "language": "java"

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.javacs.LogHandler;
 
 public class LSP {
     private static final Gson gson = new Gson();
@@ -164,7 +165,13 @@ public class LSP {
     }
 
     public static void connect(
-            Function<LanguageClient, LanguageServer> serverFactory, InputStream receive, OutputStream send) {
+        Function<LanguageClient, LanguageServer> serverFactory,
+        InputStream receive,
+        OutputStream send
+    ) {
+        // Forward all logging to LSP client
+        Logger.getLogger("").addHandler(new LogHandler((method, params) -> { notifyClient(send, method, params); }));
+        
         var server = serverFactory.apply(new RealClient(send));
         var pending = new ArrayBlockingQueue<Message>(10);
         var endOfStream = new Message();
