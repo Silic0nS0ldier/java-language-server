@@ -1,75 +1,26 @@
-# Language Server for Java using the [Java compiler API](https://docs.oracle.com/javase/10/docs/api/jdk.compiler-summary.html)
+# Language Server for Java
 
-A Java [language server](https://github.com/Microsoft/vscode-languageserver-protocol) based on v3.0 of the protocol and implemented using the Java compiler API.
+> This is a fork of [George Fraser's](https://github.com/georgewfraser) Java Language Server VSCode extension with;
+>
+> - Embedded JDK updated from 18 to 21.
+> - TextMate grammer replaced with version from [Red Hat's Java Language Support Extension for VSCode](https://github.com/redhat-developer/vscode-java/blob/f09b712f5d6d6339e765f58c8dfab3f78a378183/language-support/java/java.tmLanguage.json).
+> - More robust Bazel support.
+> - Fixed tests.
+> - Updated dependencies.
+>
+> This has been tested against Java code in the [Bazel repository](https://github.com/bazelbuild/bazel). _Most_ imports correctly resolve.
+>
+> **Resolved Import**
+> ![Resolved Import](images/vscode-bazel-repo-resolved-import.png)
+>
+> **Unresolved Import**
+> ![Unresolved Import](images/vscode-bazel-repo-unresolved-import.png)
+
+A Java [language server](https://github.com/Microsoft/vscode-languageserver-protocol) based on v3.0 of the protocol and implemented using the [Java compiler API](https://docs.oracle.com/javase/10/docs/api/jdk.compiler-summary.html).
 
 ## Installation (VS Code)
 
-[Install from the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=georgewfraser.vscode-javac)
-
-## Installation (other editors)
-
-### Vim (with vim-lsc)
-
-- Checkout this repository
-- Run `./scripts/link_{linux|mac|windows}.sh`
-- Run `mvn package -DskipTests`
-- Add the vim plugin [natebosch/vim-lsc](https://github.com/natebosch/vim-lsc) to your vimrc
-- Add vim-lsc configuration:
-  ```vimrc
-  let g:lsc_server_commands = {'java': '<path-to-java-language-server>/java-language-server/dist/lang_server_{linux|mac|windows}.sh'}
-  ```
-- See the [vim-lsc README](https://github.com/natebosch/vim-lsc/blob/master/README.md) for other configuration options.
-
-Note: This tool is not compatible with [vim-lsp](https://github.com/prabirshrestha/vim-lsp) as it only supports LSPv2.0.
-
-### KDE Kate
-
-- Checkout this repository
-- Run `./scripts/link_{linux|mac|windows}.sh`
-- Run `mvn package -DskipTests`
-- Open your Kate editor
-- Go to Settings > Configure Kate... > LSP Client > User Server Settings
-- Add this lines to your User Server Settings:
-```json
-{
-    "servers":
-    {
-        "java":
-        {
-            "command": ["bash","<path-to-java-language-server>/java-language-server/dist/lang_server_{linux|mac|windows}.sh"],
-            "url": "https://github.com/georgewfraser/java-language-server",
-            "highlightingModeRegex": "^Java$"
-        }
-    }
-}
-```
-
-
-### Sublime 3 (with LSP)
-
-- Checkout this repository
-- Run `./scripts/link_{linux|mac|windows}.sh`
-- Run `mvn package -DskipTests`
-- Open your Sublime 3
-- Install Package Control (if missing)
-- Install the [LSP Package](https://packagecontrol.io/packages/LSP) (if missing)
-- In Sublime, go to Preferences > Package Settings > LSP > Settings
-- Add this lines to your LSP Settings:
-```json
-{
-    "clients":
-    {
-        "jls":
-        {
-            "enabled": true,
-            "command": ["bash", "<path-to-java-language-server>/java-language-server/dist/lang_server_{linux|mac|windows}.sh"],
-            "scopes": ["source.java"],
-            "syntaxes": ["Packages/Java/Java.sublime-syntax"],
-            "languageId": "java"
-        }
-    }
-}
-```
+[Install from the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=siliconsoldier.java-lsp)
 
 ## [Issues](https://github.com/georgewfraser/java-language-server/issues)
 
