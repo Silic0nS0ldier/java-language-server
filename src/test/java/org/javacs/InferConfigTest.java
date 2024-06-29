@@ -64,14 +64,14 @@ public class InferConfigTest {
     public void thisProjectClassPath() {
         assertThat(
                 thisProject.classPath(),
-                hasItem(hasToString(endsWith(".m2/repository/junit/junit/4.13.1/junit-4.13.1.jar"))));
+                hasItem(hasToString(endsWith(".m2/repository/junit/junit/4.13.2/junit-4.13.2.jar"))));
     }
 
     @Test
     public void thisProjectDocPath() {
         assertThat(
                 thisProject.buildDocPath(),
-                hasItem(hasToString(endsWith(".m2/repository/junit/junit/4.13.1/junit-4.13.1-sources.jar"))));
+                hasItem(hasToString(endsWith(".m2/repository/junit/junit/4.13.2/junit-4.13.2-sources.jar"))));
     }
 
     @Test

@@ -1,13 +1,13 @@
 {
-    "name": "vscode-javac",
+    "name": "java-lsp",
     "displayName": "Java Language Support",
-    "description": "Java support using the Java Compiler API",
+    "description": "Fork of George Fraser's Java Langauge Server extension with updates and improved Bazel support.",
     "icon": "icon.png",
-    "version": "0.2.46-fork-1",
-    "publisher": "georgewfraser",
+    "version": "0.2.47",
+    "publisher": "siliconsoldier",
     "repository": {
         "type": "git",
-        "url": "https://github.com/georgewfraser/java-language-server"
+        "url": "https://github.com/siliconsoldier/java-language-server"
     },
     "license": "MIT",
     "engines": {
