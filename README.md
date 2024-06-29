@@ -22,7 +22,7 @@ A Java [language server](https://github.com/Microsoft/vscode-languageserver-prot
 
 ## Installation (VS Code)
 
-[Install from the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=siliconsoldier.java-lsp)
+[Install from the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=siliconsoldier.java-with-bazel)
 
 ## [Issues](https://github.com/georgewfraser/java-language-server/issues)
 
