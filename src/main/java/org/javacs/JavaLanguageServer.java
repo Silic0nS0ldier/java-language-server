@@ -188,8 +188,9 @@ class JavaLanguageServer extends LanguageServer {
         return new InitializeResult(c);
     }
 
+    // Keep in sync with lib/extension.ts
     private static final String[] watchFiles = {
-        "**/*.java", "**/pom.xml", "**/BUILD",
+        "**/*.java", "**/pom.xml", "**/BUILD", "**/MODULE", "**/WORKSPACE", "**/*.bazel", "**/*.bzl"
     };
 
     @Override
@@ -247,11 +248,19 @@ class JavaLanguageServer extends LanguageServer {
                 return;
             }
             var name = file.getFileName().toString();
-            switch (name) {
-                case "BUILD":
-                case "pom.xml":
-                    LOG.info("Compiler needs to be re-created because " + file + " has changed");
-                    modifiedBuild = true;
+
+            // Bazel
+            if (name.endsWith(".bzl") || name.endsWith(".bazel") || name == "BUILD" || name == "MODULE" || name == "WORKSPACE") {
+                LOG.info("Compiler needs to be re-created because Bazel build definition file '" + file + "' has changed.");
+                modifiedBuild = true;
+                return;
+            }
+
+            // Maven
+            if (name == "pom.xml") {
+                LOG.info("Compiler needs to be re-created because a Maven project file '" + file + "' has changed.");
+                modifiedBuild = true;
+                return;
             }
         }
     }

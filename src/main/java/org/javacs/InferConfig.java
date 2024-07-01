@@ -74,20 +74,23 @@ class InferConfig {
 
         // Bazel
         var bazelWorkspaceRoot = bazelWorkspaceRoot();
-        if (Files.exists(bazelWorkspaceRoot.resolve("WORKSPACE"))) {
-            return bazelClasspath(bazelWorkspaceRoot);
+        if (bazelWorkspaceRoot.isPresent()) {
+            return bazelClasspath(bazelWorkspaceRoot.get());
         }
 
         return Collections.emptySet();
     }
 
-    private Path bazelWorkspaceRoot() {
+    private Optional<Path> bazelWorkspaceRoot() {
+        var workspaceMarkers = Arrays.asList("MODULE", "MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel");
         for (var current = workspaceRoot; current != null; current = current.getParent()) {
-            if (Files.exists(current.resolve("WORKSPACE"))) {
-                return current;
+            for (var workspaceMarker : workspaceMarkers) {
+                if (Files.exists(current.resolve(workspaceMarker))) {
+                    return Optional.of(current);
+                }
             }
         }
-        return workspaceRoot;
+        return Optional.empty();
     }
 
     /** Find source .jar files in local maven repository. */
@@ -115,8 +118,8 @@ class InferConfig {
 
         // Bazel
         var bazelWorkspaceRoot = bazelWorkspaceRoot();
-        if (Files.exists(bazelWorkspaceRoot.resolve("WORKSPACE"))) {
-            return bazelSourcepath(bazelWorkspaceRoot);
+        if (bazelWorkspaceRoot.isPresent()) {
+            return bazelSourcepath(bazelWorkspaceRoot.get());
         }
 
         return Collections.emptySet();
