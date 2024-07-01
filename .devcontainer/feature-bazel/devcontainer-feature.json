@@ -1,0 +1,9 @@
+{
+    "name": "Bazel plus DX",
+    "id": "bazel",
+    "version": "1.0.0",
+    "description": "Things for Bazel",
+    "installsAfter": [
+        //"ghcr.io/devcontainers/features/common-utils"
+    ]
+}

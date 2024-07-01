@@ -1,34 +1,26 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/java
 {
-	"name": "Java",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
-
+	"name": "Java Language Server",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 	"features": {
+		"./feature-bazel": {},
+		"ghcr.io/devcontainers/features/node:1": {},
 		"ghcr.io/devcontainers/features/java:1": {
-			"version": "none",
-			"installMaven": "true",
-			"installGradle": "true"
-		},
-		"ghcr.io/devcontainers/features/node:1": {}
+			"version": "21"
+		}
 	},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "java -version",
-
-	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"siliconsoldier.java-with-bazel"
-			]
+				"bazelbuild.vscode-bazel",
+				"siliconsoldier.java-with-bazel",
+				"-vscjava.vscode-java-pack",
+				"-dbaeumer.vscode-eslint"
+			],
+			"settings": {
+				"bazel.enableCodeLens": true,
+				"bazel.lsp.command": "starpls",
+				"bazel.lsp.args": ["server"]
+			}
 		}
-	},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "root"
+	}
 }
