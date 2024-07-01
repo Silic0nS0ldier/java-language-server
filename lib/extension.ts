@@ -26,17 +26,20 @@ export async function activate(context: ExtensionContext) {
             // Synchronize the setting section 'java' to the server
             // NOTE: this currently doesn't do anything
             configurationSection: 'java',
-            // Notify the server about file changes to 'javaconfig.json' files contain in the workspace
+            // Notify the server about file changes
+            // Keep in sync with src/main/java/org/javacs/JavaLanguageServer.java
             fileEvents: [
-                workspace.createFileSystemWatcher('**/javaconfig.json'),
+                workspace.createFileSystemWatcher('**/*.java'),
                 workspace.createFileSystemWatcher('**/pom.xml'),
-                workspace.createFileSystemWatcher('**/WORKSPACE'),
                 workspace.createFileSystemWatcher('**/BUILD'),
-                workspace.createFileSystemWatcher('**/*.java')
+                workspace.createFileSystemWatcher('**/MODULE'),
+                workspace.createFileSystemWatcher('**/WORKSPACE'),
+                workspace.createFileSystemWatcher('**/*.bazel'),
+                workspace.createFileSystemWatcher('**/*.bzl'),
             ]
         },
         outputChannelName: 'Java Language Server',
-        revealOutputChannelOn: 4 // never
+        revealOutputChannelOn: 4, // never
     }
 
     let launcherRelativePath = platformSpecificLangServer();
@@ -47,7 +50,9 @@ export async function activate(context: ExtensionContext) {
     let serverOptions: ServerOptions = {
         command: launcher,
         args: [],
-        options: { cwd: context.extensionPath }
+        options: {
+            cwd: context.extensionPath,
+        },
     }
 
     if (visualVm) {
