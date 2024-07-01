@@ -35,7 +35,7 @@ export async function activate(context: ExtensionContext) {
                 workspace.createFileSystemWatcher('**/*.java')
             ]
         },
-        outputChannelName: 'Java',
+        outputChannelName: 'Java Language Server',
         revealOutputChannelOn: 4 // never
     }
 
