@@ -1,0 +1,51 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+java_library(
+    name = "main",
+    srcs = glob(["src/main/java/org/**/*.java"]),
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_google_protobuf_protobuf_java",
+        ":analysis_java_proto",
+    ],
+    add_exports = [
+        "jdk.compiler/com.sun.tools.javac.api",
+        "jdk.compiler/com.sun.tools.javac.code",
+        "jdk.compiler/com.sun.tools.javac.comp",
+        "jdk.compiler/com.sun.tools.javac.main",
+        "jdk.compiler/com.sun.tools.javac.tree",
+        "jdk.compiler/com.sun.tools.javac.model",
+        "jdk.compiler/com.sun.tools.javac.util",
+    ],
+    add_opens = [
+        "jdk.compiler/com.sun.tools.javac.api",
+    ],
+)
+
+proto_library(
+    name = "build_proto",
+    srcs = [
+        "src/main/protobuf/build.proto",
+    ],
+)
+
+proto_library(
+    name = "analysis_v2_proto",
+    srcs = ["src/main/protobuf/analysis_v2.proto"],
+    deps = [":build_proto"],
+)
+
+proto_library(
+    name = "analysis_v1_proto",
+    srcs = ["src/main/protobuf/analysis.proto"],
+    deps = [":build_proto"],
+)
+
+java_proto_library(
+    name = "analysis_java_proto",
+    deps = [
+        ":analysis_v1_proto",
+        ":analysis_v2_proto",
+    ],
+)
