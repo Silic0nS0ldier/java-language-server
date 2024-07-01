@@ -19,3 +19,17 @@ maven.install(
     lock_file = "//:maven_install.json",
 )
 use_repo(maven, "maven")
+
+java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(
+    java_toolchains,
+    "remote_java_tools",
+    "remote_java_tools_darwin_arm64",
+    "remote_java_tools_darwin_x86_64",
+    "remote_java_tools_linux",
+    "remote_java_tools_windows",
+    "remotejdk21_linux",
+    "remotejdk21_macos",
+    "remotejdk21_macos_aarch64",
+    "remotejdk21_win",
+)
