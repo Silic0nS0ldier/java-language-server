@@ -2,8 +2,8 @@ load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 java_library(
-    name = "main",
-    srcs = glob(["src/main/java/org/**/*.java"]),
+    name = "main_lib",
+    srcs = glob(["java/**/*.java"]),
     deps = [
         "@maven//:com_google_code_gson_gson",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -21,24 +21,25 @@ java_library(
     add_opens = [
         "jdk.compiler/com.sun.tools.javac.api",
     ],
+    visibility = ["//language_server/src/test:__pkg__"]
 )
 
 proto_library(
     name = "build_proto",
     srcs = [
-        "src/main/protobuf/build.proto",
+        "protobuf/build.proto",
     ],
 )
 
 proto_library(
     name = "analysis_v2_proto",
-    srcs = ["src/main/protobuf/analysis_v2.proto"],
+    srcs = ["protobuf/analysis_v2.proto"],
     deps = [":build_proto"],
 )
 
 proto_library(
     name = "analysis_v1_proto",
-    srcs = ["src/main/protobuf/analysis.proto"],
+    srcs = ["protobuf/analysis.proto"],
     deps = [":build_proto"],
 )
 

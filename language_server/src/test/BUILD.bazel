@@ -1,0 +1,33 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
+
+java_library(
+    name = "test_lib",
+    srcs = glob(["java/**/*.java"]),
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:org_hamcrest_hamcrest",
+        "@maven//:junit_junit",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+        "//language_server/src/main:main_lib",
+    ],
+    add_exports = [
+        "jdk.compiler/com.sun.tools.javac.api",
+        "jdk.compiler/com.sun.tools.javac.code",
+        "jdk.compiler/com.sun.tools.javac.comp",
+        "jdk.compiler/com.sun.tools.javac.main",
+        "jdk.compiler/com.sun.tools.javac.tree",
+        "jdk.compiler/com.sun.tools.javac.model",
+        "jdk.compiler/com.sun.tools.javac.util",
+    ],
+    add_opens = [
+        "jdk.compiler/com.sun.tools.javac.api",
+    ],
+)
+
+# TODO Several tests are integration tests that need to be handled separately
+java_test(
+    name = "test",
+    test_class = "org.javacs.AllTests",
+    runtime_deps = [":test_lib"],
+)
