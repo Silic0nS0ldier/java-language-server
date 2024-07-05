@@ -3,7 +3,7 @@ module(name = "bazel_java_vscode")
 bazel_dep(name = "rules_proto", version = "6.0.2")
 bazel_dep(name = "rules_java", version = "7.6.5")
 bazel_dep(name = "rules_jvm_external", version = "6.1")
-bazel_dep(name = "aspect_rules_js", version = "2.0.0-rc5")
+bazel_dep(name = "aspect_rules_js", version = "2.0.0-rc6")
 bazel_dep(name = "rules_nodejs", version = "6.2.0")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")

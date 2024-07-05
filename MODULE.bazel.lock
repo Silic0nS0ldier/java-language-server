@@ -9,8 +9,8 @@
     "https://bcr.bazel.build/modules/apple_support/1.5.0/source.json": "eb98a7627c0bc486b57f598ad8da50f6625d974c8f723e9ea71bd39f709c9862",
     "https://bcr.bazel.build/modules/aspect_bazel_lib/2.7.7/MODULE.bazel": "491f8681205e31bb57892d67442ce448cda4f472a8e6b3dc062865e29a64f89c",
     "https://bcr.bazel.build/modules/aspect_bazel_lib/2.7.7/source.json": "87f12b449cd1d27d3e83840a59a6966d557e7c3c5f19e7b2e0361da5edc6b397",
-    "https://bcr.bazel.build/modules/aspect_rules_js/2.0.0-rc5/MODULE.bazel": "f7cbb5a79e6bfe2251558e83e37e4eaed7ec1c16afeca3f4d66ac201ad3852ab",
-    "https://bcr.bazel.build/modules/aspect_rules_js/2.0.0-rc5/source.json": "e999a96c8a40c9c95bd83fc9de084bc03d1b9521553a17cb4d3ace8682aef3fd",
+    "https://bcr.bazel.build/modules/aspect_rules_js/2.0.0-rc6/MODULE.bazel": "1db59a4c557d94e98cf30df3defdea9782e4bce882454c10068c7cbcb987c258",
+    "https://bcr.bazel.build/modules/aspect_rules_js/2.0.0-rc6/source.json": "083c40c3802a0e38f6f7a96aa50cfed0cfebf12b1243d1552fa44d27b26e6c94",
     "https://bcr.bazel.build/modules/bazel_features/1.11.0/MODULE.bazel": "f9382337dd5a474c3b7d334c2f83e50b6eaedc284253334cf823044a26de03e8",
     "https://bcr.bazel.build/modules/bazel_features/1.11.0/source.json": "c9320aa53cd1c441d24bd6b716da087ad7e4ff0d9742a9884587596edfe53015",
     "https://bcr.bazel.build/modules/bazel_features/1.4.1/MODULE.bazel": "e45b6bb2350aff3e442ae1111c555e27eac1d915e77775f6fdc4b351b758b5d7",
@@ -121,7 +121,7 @@
     "@@aspect_bazel_lib~//lib:extensions.bzl%toolchains": {
       "general": {
         "bzlTransitiveDigest": "3KydN9M+cGcn8Huu/umxX7Vk08sXz5lJeUxg/b0Gxjc=",
-        "usagesDigest": "tcTZoddI2dH/5kXCTVU2S6ICoRA9nzL6xy1BRlA4VTQ=",
+        "usagesDigest": "4WmiryvAUWvG7zSCFs+dKgFUv7JC2Sula75K3yuKjkU=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -587,8 +587,8 @@
     },
     "@@aspect_rules_js~//npm:extensions.bzl%pnpm": {
       "general": {
-        "bzlTransitiveDigest": "c2dHqmU1Y0k63TY4dEwz3EUs4rvZiJjQs2jMZaxs9oY=",
-        "usagesDigest": "kDgcPXl4PCw+VpOE7KD9HmdKfeDvzgQDMDN7Erh3cq8=",
+        "bzlTransitiveDigest": "qPskAdwf8yQKzlSqsBpzxjdHyZXkfOnfFmgaTOy4ucA=",
+        "usagesDigest": "VdJIftRTNO40b1dxu/UVnnQ+hJ4EKUmA3HTerXR9fvk=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -641,7 +641,8 @@
               "lifecycle_hooks": [],
               "extra_build_content": "load(\"@aspect_rules_js//js:defs.bzl\", \"js_binary\")\njs_binary(name = \"pnpm\", data = glob([\"package/**\"]), entry_point = \"package/dist/pnpm.cjs\", visibility = [\"//visibility:public\"])",
               "generate_bzl_library_targets": false,
-              "extract_full_archive": true
+              "extract_full_archive": true,
+              "system_tar": "auto"
             }
           }
         },
@@ -4450,7 +4451,7 @@
     "@@rules_nodejs~//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "0IJr1Jg3Dns9QKY65MtauFLtHjjP3n1DgN0+ZAjFYXo=",
-        "usagesDigest": "PVdTyA9NQmWEdt4JptvqQFSvww3ta7pGhgLD++oyjfc=",
+        "usagesDigest": "/MohWTsZiz9sp7c9463bW1QARdCCfMz3deR6ukpWG4I=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
