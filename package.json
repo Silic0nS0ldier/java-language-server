@@ -1,5 +1,9 @@
 {
     "pnpm": {
         "onlyBuiltDependencies": []
+    },
+    "dependencies": {
+        "@types/node": "^20.14.10",
+        "typescript": "^5.4.5"
     }
 }

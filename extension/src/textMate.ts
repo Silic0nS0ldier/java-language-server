@@ -1,6 +1,6 @@
 'use strict';
-import {window, TextEditorDecorationType, DecorationRangeBehavior, DecorationRenderOptions} from 'vscode';
-import * as scopes from './scopes'
+import {window, type TextEditorDecorationType, DecorationRangeBehavior, type DecorationRenderOptions} from 'vscode';
+import * as scopes from './scopes.js'
 
 // Create decoration types from scopes lazily
 const decorationCache = new Map<string, TextEditorDecorationType>()

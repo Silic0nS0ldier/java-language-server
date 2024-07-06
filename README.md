@@ -1,6 +1,6 @@
 # Java+Bazel Language Support
 
-See [`extension/README.md`](extension/README.md) for extension details.
+See [`extension/vsix/README.md`](extension/vsix/README.md) for extension details.
 
 ## Installation (VS Code)
 

@@ -1,8 +1,8 @@
 import * as Path from "path";
-import {window, workspace, ExtensionContext, commands, tasks, Task, TaskExecution, ShellExecution, Uri, TaskDefinition, languages, IndentAction, Progress, ProgressLocation, debug, DebugConfiguration, Range, Position, TextDocument, TextDocumentContentProvider, CancellationToken, ProviderResult, ConfigurationChangeEvent, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugAdapterExecutable, DebugSession, DebugAdapterExecutableOptions} from 'vscode';
-import {LanguageClient, LanguageClientOptions, ServerOptions, NotificationType} from "vscode-languageclient";
-import {loadStyles, decoration} from './textMate';
-import * as AdmZip from 'adm-zip';
+import {window, workspace, type ExtensionContext, commands, tasks, Task, type TaskExecution, ShellExecution, Uri, type TaskDefinition, languages, IndentAction, type Progress, ProgressLocation, debug, type DebugConfiguration, Range, Position, type TextDocument, type TextDocumentContentProvider, type CancellationToken, type ProviderResult, type ConfigurationChangeEvent, type DebugAdapterDescriptorFactory, type DebugAdapterDescriptor, DebugAdapterExecutable, type DebugSession, type DebugAdapterExecutableOptions} from 'vscode';
+import {LanguageClient, type LanguageClientOptions, type ServerOptions, NotificationType} from "vscode-languageclient";
+import {loadStyles, decoration} from './textMate.js';
+import AdmZip from 'adm-zip';
 
 /** Called when extension is activated */
 export async function activate(context: ExtensionContext) {
@@ -117,7 +117,7 @@ export async function activate(context: ExtensionContext) {
 		}
 	}
     client.onReady().then(() => {
-        client.onNotification(new NotificationType('java/colors'), cacheSemanticColors);
+        client.onNotification<SemanticColors, unknown>(new NotificationType('java/colors'), cacheSemanticColors);
         context.subscriptions.push(window.onDidChangeVisibleTextEditors(applySemanticColors));
         context.subscriptions.push(workspace.onDidCloseTextDocument(forgetSemanticColors));
         context.subscriptions.push(workspace.onDidChangeConfiguration(onChangeConfiguration))
@@ -141,10 +141,12 @@ class JarFileSystemProvider implements TextDocumentContentProvider {
     private readZip(zip: string, file: string): Promise<string> {
         return new Promise((resolve, reject) => {
             try {
-                if (!this.cache.has(zip)) {
-                    this.cache.set(zip, new AdmZip(zip));
+                let cached = this.cache.get(zip);
+                if (!cached) {
+                    cached = new AdmZip(zip);
+                    this.cache.set(zip, cached);
                 }
-                this.cache.get(zip).readAsTextAsync(file, resolve);
+                cached.readAsTextAsync(file, resolve);
             } catch (error) {
                 reject(error);
             }
@@ -183,17 +185,20 @@ interface JavaTestTask extends TaskDefinition {
     methodName: string
 }
 
-function runTest(sourceUri: string, className: string, methodName: string|null): Thenable<TaskExecution> {
+function runTest(sourceUri: string, className: string, methodName: string|null): Thenable<TaskExecution>|false {
     let file = Uri.parse(sourceUri).fsPath;
+    // @ts-expect-error
     file = Path.relative(workspace.rootPath, file);
 	let test: JavaTestTask = {
 		type: 'java.task.test',
         className: className,
+        // @ts-expect-error
         methodName: methodName,
     }
     let shell = testShell(file, className, methodName);
-    if (shell == null) return null;
+    if (shell == null) return false;
 	let workspaceFolder = workspace.getWorkspaceFolder(Uri.parse(sourceUri));
+    // @ts-expect-error
 	let testTask = new Task(test, workspaceFolder, 'Java Test', 'Java Language Server', shell);
 	return tasks.executeTask(testTask)
 }
@@ -215,13 +220,14 @@ function testShell(file: string, className: string, methodName: string|null) {
             window.showErrorMessage('Set "java.testClass" in .vscode/settings.json');
             return null;
         } else {
-            return templateCommand(command, file, className, methodName)
+            return templateCommand(command, file, className, "")
         }
     }
 }
 
 async function debugTest(sourceUri: string, className: string, methodName: string, sourceRoots: string[]): Promise<boolean> {
     let file = Uri.parse(sourceUri).fsPath;
+    // @ts-expect-error
     file = Path.relative(workspace.rootPath, file);
     // Run the test in its own shell
 	let test: JavaTestTask = {
@@ -230,8 +236,9 @@ async function debugTest(sourceUri: string, className: string, methodName: strin
         methodName: methodName,
     }
     let shell = debugTestShell(file, className, methodName);
-    if (shell == null) return null;
+    if (shell == null) return false;
 	let workspaceFolder = workspace.getWorkspaceFolder(Uri.parse(sourceUri));
+    if (!workspaceFolder) return false;
 	let testTask = new Task(test, workspaceFolder, 'Java Test', 'Java Language Server', shell);
     await tasks.executeTask(testTask);
     // Attach to the running test
@@ -280,8 +287,8 @@ interface ProgressMessage {
 function createProgressListeners(client: LanguageClient) {
 	// Create a "checking files" progress indicator
 	let progressListener = new class {
-		progress: Progress<{message: string, increment?: number}>
-		resolve: (nothing: {}) => void
+		progress?: Progress<{message: string, increment?: number}>
+		resolve?: (nothing: {}) => void
 		
 		startProgress(message: string) {
             if (this.progress != null)
@@ -295,24 +302,24 @@ function createProgressListeners(client: LanguageClient) {
 		
 		reportProgress(message: string, increment: number) {
             if (increment == -1)
-                this.progress.report({message});
+                this.progress?.report({message});
             else 
-                this.progress.report({message, increment})
+                this.progress?.report({message, increment})
 		}
 
 		endProgress() {
             if (this.progress != null) {
-                this.resolve({});
-                this.progress = null;
-                this.resolve = null;
+                this.resolve?.({});
+                this.progress = undefined;
+                this.resolve = undefined;
             }
 		}
 	}
 	// Use custom notifications to drive progressListener
-	client.onNotification(new NotificationType('java/startProgress'), (event: ProgressMessage) => {
+	client.onNotification<ProgressMessage, unknown>(new NotificationType('java/startProgress'), (event) => {
 		progressListener.startProgress(event.message);
 	});
-	client.onNotification(new NotificationType('java/reportProgress'), (event: ProgressMessage) => {
+	client.onNotification<ProgressMessage, unknown>(new NotificationType('java/reportProgress'), (event) => {
 		progressListener.reportProgress(event.message, event.increment);
 	});
 	client.onNotification(new NotificationType('java/endProgress'), () => {
