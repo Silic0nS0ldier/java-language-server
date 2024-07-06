@@ -1,8 +1,47 @@
-import * as Path from "path";
-import {window, workspace, type ExtensionContext, commands, tasks, Task, type TaskExecution, ShellExecution, Uri, type TaskDefinition, languages, IndentAction, type Progress, ProgressLocation, debug, type DebugConfiguration, Range, Position, type TextDocument, type TextDocumentContentProvider, type CancellationToken, type ProviderResult, type ConfigurationChangeEvent, type DebugAdapterDescriptorFactory, type DebugAdapterDescriptor, DebugAdapterExecutable, type DebugSession, type DebugAdapterExecutableOptions} from 'vscode';
-import {LanguageClient, type LanguageClientOptions, type ServerOptions, NotificationType} from "vscode-languageclient";
+import path from "node:path";
+import {
+    window,
+    workspace,
+    type ExtensionContext,
+    commands,
+    tasks,
+    Task,
+    type TaskExecution,
+    ShellExecution,
+    Uri,
+    type TaskDefinition,
+    languages,
+    IndentAction,
+    type Progress,
+    ProgressLocation,
+    debug,
+    type DebugConfiguration,
+    Range,
+    Position,
+    type TextDocument,
+    type TextDocumentContentProvider,
+    type CancellationToken,
+    type ProviderResult,
+    type ConfigurationChangeEvent,
+    type DebugAdapterDescriptorFactory,
+    type DebugAdapterDescriptor,
+    DebugAdapterExecutable,
+    type DebugSession,
+    type DebugAdapterExecutableOptions
+} from 'vscode';
+import {
+    LanguageClient,
+    type LanguageClientOptions,
+    type ServerOptions,
+    NotificationType
+} from "vscode-languageclient";
 import {loadStyles, decoration} from './textMate.js';
 import AdmZip from 'adm-zip';
+import url from 'node:url';
+import fs from "node:fs";
+import { downloadJre, resolveJre } from "./download-jre.js";
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 /** Called when extension is activated */
 export async function activate(context: ExtensionContext) {
@@ -11,10 +50,16 @@ export async function activate(context: ExtensionContext) {
     // Teach VSCode to open JAR files
     workspace.registerTextDocumentContentProvider('jar', new JarFileSystemProvider());
 
-    debug.registerDebugAdapterDescriptorFactory("java", new DebugAdapterExecutableFactory())
+    debug.registerDebugAdapterDescriptorFactory("java", new DebugAdapterExecutableFactory());
 
-    // TODO Download JRE (if required)
-    const javaPath = "";
+    // Download JRE (if required)
+    const resolvedJre = await resolveJre(context.globalStorageUri.fsPath);
+    if (!fs.existsSync(resolvedJre.javaPath)) {
+        await window.withProgress(
+            { location: ProgressLocation.Notification },
+            progress => downloadJre(resolvedJre, progress),
+        );
+    };
     
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
@@ -40,11 +85,12 @@ export async function activate(context: ExtensionContext) {
         revealOutputChannelOn: 4, // never
     };
 
-    const languageServerJarPath = "";
+    // TODO Use context.asAbsolutePath
+    const languageServerJarPath = path.join(__dirname, '../language-server.jar');
     
     // Start the child java process
     let serverOptions: ServerOptions = {
-        command: javaPath,
+        command: resolvedJre.javaPath,
         args: ["-jar", languageServerJarPath],
         options: {
             cwd: context.extensionPath,
@@ -160,9 +206,9 @@ class DebugAdapterExecutableFactory implements DebugAdapterDescriptorFactory {
         _executable: DebugAdapterExecutable,
     ): ProviderResult<DebugAdapterDescriptor> {
         const javaPath = "";
-        const debugServerJar = "";
+        const debugServerJarPath = path.resolve(__dirname, '../debug-server.jar');
         const args = [
-            "-jar", debugServerJar,
+            "-jar", debugServerJarPath,
         ];
         const options: DebugAdapterExecutableOptions = {};
 
@@ -188,7 +234,7 @@ interface JavaTestTask extends TaskDefinition {
 function runTest(sourceUri: string, className: string, methodName: string|null): Thenable<TaskExecution>|false {
     let file = Uri.parse(sourceUri).fsPath;
     // @ts-expect-error
-    file = Path.relative(workspace.rootPath, file);
+    file = path.relative(workspace.rootPath, file);
 	let test: JavaTestTask = {
 		type: 'java.task.test',
         className: className,
@@ -228,7 +274,7 @@ function testShell(file: string, className: string, methodName: string|null) {
 async function debugTest(sourceUri: string, className: string, methodName: string, sourceRoots: string[]): Promise<boolean> {
     let file = Uri.parse(sourceUri).fsPath;
     // @ts-expect-error
-    file = Path.relative(workspace.rootPath, file);
+    file = path.relative(workspace.rootPath, file);
     // Run the test in its own shell
 	let test: JavaTestTask = {
 		type: 'java.task.test',

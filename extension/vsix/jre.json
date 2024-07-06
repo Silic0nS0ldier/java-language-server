@@ -3,24 +3,24 @@
         "url": "https://cdn.azul.com/zulu/bin/zulu21.34.19-ca-jre21.0.3-linux_x64.tar.gz",
         "sha256": "a22dbf29ca368651088391094e9e64f653cc5a332f536ea4e7c3a6d82b2a5fe4",
         "os": "linux",
-        "cpu": "amd64"
+        "cpu": ["x64"]
     },
     "jre21_linux_arm64": {
         "url": "https://cdn.azul.com/zulu/bin/zulu21.34.19-ca-jre21.0.3-linux_aarch64.tar.gz",
         "sha256": "908b0357131747df386784e0e961e244fe8234e056b489cdfde3ffe1db8132d6",
         "os": "linux",
-        "cpu": "arm64"
+        "cpu": ["arm64"]
     },
     "jre21_macos": {
         "url": "https://cdn.azul.com/zulu/bin/zulu21.34.19-ca-jre21.0.3-macosx_x64.tar.gz",
         "sha256": "cd319c844ee2eba5d6a4319b41f7fb37c63693aa31aa5434346f304db340f881",
-        "os": "macos",
-        "cpu": ["amd64", "arm64"]
+        "os": "darwin",
+        "cpu": ["x64", "arm64"]
     },
     "jre21_windows_amd64": {
         "url": "https://cdn.azul.com/zulu/bin/zulu21.34.19-ca-jre21.0.3-win_x64.zip",
         "sha256": "56c17e0f152055bfc110347b017e1efd2e1fc243e483d2e3fe371910287059f9",
-        "os": "windows",
-        "cpu": "amd64"
+        "os": "win32",
+        "cpu": ["x64"]
     }
 }

@@ -28,7 +28,7 @@ java_binary(
     ],
     add_exports = add_exports,
     add_opens = add_opens,
-    visibility = ["//server/src/test:__pkg__"]
+    visibility = ["//server/src/test:__pkg__", "//extension/vsix:__pkg__"]
 )
 
 # TODO This binary can be trimmed down a lot, most of the source is for the language server
@@ -43,7 +43,7 @@ java_binary(
     ],
     add_exports = add_exports,
     add_opens = add_opens,
-    visibility = ["//server/src/test:__pkg__"]
+    visibility = ["//server/src/test:__pkg__", "//extension/vsix:__pkg__"]
 )
 
 java_library(

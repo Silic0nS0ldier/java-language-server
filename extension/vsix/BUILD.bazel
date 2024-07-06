@@ -20,6 +20,18 @@ copy_file(
     out = "src/main.js",
 )
 
+# Copy jars
+copy_file(
+    name = "copy_language_server_jar",
+    src = "//server/src/main:language_server_deploy.jar",
+    out = "language-server.jar",
+)
+copy_file(
+    name = "copy_debug_server_jar",
+    src = "//server/src/main:debug_server_deploy.jar",
+    out = "debug-server.jar",
+)
+
 # Copy license
 copy_file(
     name = "copy_license",
@@ -33,6 +45,8 @@ vsce_package(
         ":copy_bundle_chunks",
         ":copy_bundle_main",
         ":copy_license",
+        ":copy_language_server_jar",
+        ":copy_debug_server_jar",
     ],
     in_dir = "./",
 )
