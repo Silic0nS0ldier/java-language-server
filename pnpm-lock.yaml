@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  extension:
     dependencies:
       adm-zip:
         specifier: ^0.4.13

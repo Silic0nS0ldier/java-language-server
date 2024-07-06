@@ -1,15 +1,8 @@
-'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as Path from "path";
-import * as FS from "fs";
-import {window, workspace, ExtensionContext, commands, tasks, Task, TaskExecution, ShellExecution, Uri, TaskDefinition, languages, IndentAction, Progress, ProgressLocation, debug, DebugConfiguration, Range, Position, TextDocument, TextDocumentContentProvider, CancellationToken, ProviderResult, ConfigurationChangeEvent} from 'vscode';
+import {window, workspace, ExtensionContext, commands, tasks, Task, TaskExecution, ShellExecution, Uri, TaskDefinition, languages, IndentAction, Progress, ProgressLocation, debug, DebugConfiguration, Range, Position, TextDocument, TextDocumentContentProvider, CancellationToken, ProviderResult, ConfigurationChangeEvent, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugAdapterExecutable, DebugSession, DebugAdapterExecutableOptions} from 'vscode';
 import {LanguageClient, LanguageClientOptions, ServerOptions, NotificationType} from "vscode-languageclient";
 import {loadStyles, decoration} from './textMate';
 import * as AdmZip from 'adm-zip';
-
-// If we want to profile using VisualVM, we have to run the language server using regular java, not jlink
-const visualVm = false;
 
 /** Called when extension is activated */
 export async function activate(context: ExtensionContext) {
@@ -17,6 +10,11 @@ export async function activate(context: ExtensionContext) {
 
     // Teach VSCode to open JAR files
     workspace.registerTextDocumentContentProvider('jar', new JarFileSystemProvider());
+
+    debug.registerDebugAdapterDescriptorFactory("java", new DebugAdapterExecutableFactory())
+
+    // TODO Download JRE (if required)
+    const javaPath = "";
     
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
@@ -40,23 +38,17 @@ export async function activate(context: ExtensionContext) {
         },
         outputChannelName: 'Java Language Server',
         revealOutputChannelOn: 4, // never
-    }
+    };
 
-    let launcherRelativePath = platformSpecificLangServer();
-    let launcherPath = [context.extensionPath].concat(launcherRelativePath);
-    let launcher = Path.resolve(...launcherPath);
+    const languageServerJarPath = "";
     
     // Start the child java process
     let serverOptions: ServerOptions = {
-        command: launcher,
-        args: [],
+        command: javaPath,
+        args: ["-jar", languageServerJarPath],
         options: {
             cwd: context.extensionPath,
         },
-    }
-
-    if (visualVm) {
-        serverOptions = visualVmConfig(context);
     }
 
     enableJavadocSymbols();
@@ -158,6 +150,23 @@ class JarFileSystemProvider implements TextDocumentContentProvider {
             }
         });
     }
+}
+
+class DebugAdapterExecutableFactory implements DebugAdapterDescriptorFactory {
+    createDebugAdapterDescriptor(
+        _session: DebugSession,
+        _executable: DebugAdapterExecutable,
+    ): ProviderResult<DebugAdapterDescriptor> {
+        const javaPath = "";
+        const debugServerJar = "";
+        const args = [
+            "-jar", debugServerJar,
+        ];
+        const options: DebugAdapterExecutableOptions = {};
+
+        return new DebugAdapterExecutable(javaPath, args, options);
+    }
+
 }
 
 // this method is called when your extension is deactivated
@@ -325,128 +334,6 @@ interface RangeLike {
 interface PositionLike {
     line: number;
     character: number;
-}
-
-function platformSpecificLangServer(): string[] {
-	switch (process.platform) {
-		case 'win32':
-            return ['dist', 'lang_server_windows.sh'];
-
-        case 'darwin':
-            return ['dist', 'lang_server_mac.sh'];
-
-        case 'linux':
-            return ['dist', 'lang_server_linux.sh'];
-	}
-
-	throw `unsupported platform: ${process.platform}`;
-}
-
-// Alternative server options if you want to use visualvm
-function visualVmConfig(context: ExtensionContext): ServerOptions {
-    let javaExecutablePath = findJavaExecutable('java');
-    
-    if (javaExecutablePath == null) {
-        window.showErrorMessage("Couldn't locate java in $JAVA_HOME or $PATH");
-        
-        throw "Gave up";
-    }
-    const jars = [
-        'gson-2.11.0.jar',
-        'protobuf-java-3.25.3.jar',
-        'java-language-server.jar',
-    ];
-    const classpath = jars.map(jar => Path.resolve(context.extensionPath, "dist", "classpath", jar)).join(':');
-    let args = [
-        '-cp', classpath, 
-        '-Xverify:none', // helps VisualVM avoid 'error 62'
-        '-Xdebug',
-        // '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005',
-        'org.javacs.Main',
-        // Exports, needed at compile and runtime for access
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.api=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.code=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.comp=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.main=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.model=javacs",
-        "--add-exports", "jdk.compiler/com.sun.tools.javac.util=javacs",
-        // Opens, needed at runtime for reflection
-        "--add-opens", "jdk.compiler/com.sun.tools.javac.api=javacs",
-    ];
-    
-    console.log(javaExecutablePath + ' ' + args.join(' '));
-    
-    // Start the child java process
-    return {
-        command: javaExecutablePath,
-        args: args,
-        options: { cwd: context.extensionPath }
-    }
-}
-
-function findJavaExecutable(binname: string) {
-	binname = correctBinname(binname);
-
-	// First search java.home setting
-    let userJavaHome = workspace.getConfiguration('java').get('home') as string;
-
-	if (userJavaHome != null) {
-        console.log('Looking for java in settings java.home ' + userJavaHome + '...');
-
-        let candidate = findJavaExecutableInJavaHome(userJavaHome, binname);
-
-        if (candidate != null)
-            return candidate;
-	}
-
-	// Then search each JAVA_HOME
-    let envJavaHome = process.env['JAVA_HOME'];
-
-	if (envJavaHome) {
-        console.log('Looking for java in environment variable JAVA_HOME ' + envJavaHome + '...');
-
-        let candidate = findJavaExecutableInJavaHome(envJavaHome, binname);
-
-        if (candidate != null)
-            return candidate;
-	}
-
-	// Then search PATH parts
-	if (process.env['PATH']) {
-        console.log('Looking for java in PATH');
-        
-		let pathparts = process.env['PATH'].split(Path.delimiter);
-		for (let i = 0; i < pathparts.length; i++) {
-			let binpath = Path.join(pathparts[i], binname);
-			if (FS.existsSync(binpath)) {
-				return binpath;
-			}
-		}
-	}
-    
-	// Else return the binary name directly (this will likely always fail downstream) 
-	return null;
-}
-
-function correctBinname(binname: string) {
-	if (process.platform === 'win32')
-		return binname + '.exe';
-	else
-		return binname;
-}
-
-function findJavaExecutableInJavaHome(javaHome: string, binname: string) {
-    let workspaces = javaHome.split(Path.delimiter);
-
-    for (let i = 0; i < workspaces.length; i++) {
-        let binpath = Path.join(workspaces[i], 'bin', binname);
-
-        if (FS.existsSync(binpath)) 
-            return binpath;
-    }
-
-    return null;
 }
 
 function enableJavadocSymbols() {
