@@ -16,10 +16,10 @@ syntax = "proto3";
 
 package analysis;
 
-import "language_server/src/main/protobuf/build.proto";
+import "server/src/main/protobuf/build.proto";
 
 option java_package = "com.google.devtools.build.lib.analysis";
-option java_outer_classname = "AnalysisProtosV2";
+option java_outer_classname = "AnalysisProtos";
 
 // Container for the action graph properties.
 message ActionGraphContainer {
@@ -30,19 +30,17 @@ message ActionGraphContainer {
   repeated Configuration configuration = 5;
   repeated AspectDescriptor aspect_descriptors = 6;
   repeated RuleClass rule_classes = 7;
-  repeated PathFragment path_fragments = 8;
 }
 
 // Represents a single artifact, whether it's a source file or a derived output
 // file.
 message Artifact {
-  // Identifier for this artifact; this is a uint32, only valid for this
+  // Identifier for this artifact; this is an opaque string, only valid for this
   // particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
-  // The id of the PathFragment that represents the relative path of the file
-  // within the execution root.
-  uint32 path_fragment_id = 2;
+  // The relative path of the file within the execution root.
+  string exec_path = 2;
 
   // True iff the artifact is a tree artifact, i.e. the above exec_path refers
   // a directory.
@@ -53,13 +51,13 @@ message Artifact {
 // Artifact(s).
 message Action {
   // The target that was responsible for the creation of the action.
-  uint32 target_id = 1;
+  string target_id = 1;
 
   // The aspects that were responsible for the creation of the action (if any).
   // In the case of aspect-on-aspect, AspectDescriptors are listed in
   // topological order of the dependency graph.
   // e.g. [A, B] would imply that aspect A is applied on top of aspect B.
-  repeated uint32 aspect_descriptor_ids = 2;
+  repeated string aspect_descriptor_ids = 2;
 
   // Encodes all significant behavior that might affect the output. The key
   // must change if the work performed by the execution of this action changes.
@@ -70,7 +68,7 @@ message Action {
   string mnemonic = 4;
 
   // The configuration under which this action is executed.
-  uint32 configuration_id = 5;
+  string configuration_id = 5;
 
   // The command line arguments of the action. This will be only set if
   // explicitly requested.
@@ -81,16 +79,11 @@ message Action {
 
   // The set of input dep sets that the action depends upon. If the action does
   // input discovery, the contents of this set might change during execution.
-  repeated uint32 input_dep_set_ids = 8;
-
-  // The set of scheduling dependency dep sets the action depends on.
-  // Only set of both --include_artifacts and --include_scheduling_dependencies
-  // is set to true.
-  repeated uint32 scheduling_dep_dep_set_ids = 20;
+  repeated string input_dep_set_ids = 8;
 
   // The list of Artifact IDs that represent the output files that this action
   // will generate.
-  repeated uint32 output_ids = 9;
+  repeated string output_ids = 9;
 
   // True iff the action does input discovery during execution.
   bool discovers_inputs = 10;
@@ -102,53 +95,26 @@ message Action {
 
   // The list of param files. This will be only set if explicitly requested.
   repeated ParamFile param_files = 12;
-
-  // The id to an Artifact that is the primary output of this action.
-  uint32 primary_output_id = 13;
-
-  // The execution platform for this action. Empty if the action has no
-  // execution platform.
-  string execution_platform = 14;
-
-  // The template content of the action, if it is TemplateExpand action.
-  string template_content = 15;
-
-  // The list of substitution should be performed on the template. The key is
-  // the string to be substituted and the value is the string to be substituted
-  // to.
-  repeated KeyValuePair substitutions = 16;
-
-  // The contents of the file for the ctx.actions.write() action
-  // (guarded by the --include_file_write_contents flag).
-  string file_contents = 17;
-
-  // The target of the symlink created by UnresolvedSymlink actions.
-  // For regular Symlink actions, the target is represented as an input.
-  string unresolved_symlink_target = 18;
-
-  // If FileWrite actions should make their output executable.
-  // (ctx.actions.write(is_executable=True))
-  bool is_executable = 19;
 }
 
 // Represents a single target (without configuration information) that is
 // associated with an action.
 message Target {
-  // Identifier for this target; this is a uint32, only valid for this
+  // Identifier for this target; this is an opaque string, only valid for this
   // particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
   // Label of the target, e.g. //foo:bar.
   string label = 2;
 
   // Class of the rule.
-  uint32 rule_class_id = 3;
+  string rule_class_id = 3;
 }
 
 message RuleClass {
-  // Identifier for this rule class; this is a uint32, only valid for
+  // Identifier for this rule class; this is an opaque string, only valid for
   // this particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
   // Name of the rule class, e.g. cc_library.
   string name = 2;
@@ -156,12 +122,12 @@ message RuleClass {
 
 // Represents an invocation specific descriptor of an aspect.
 message AspectDescriptor {
-  // Identifier for this aspect descriptor; this is a uint32, only valid
+  // Identifier for this aspect descriptor; this is an opaque string, only valid
   // for the particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
   // The name of the corresponding aspect. For native aspects, it's the Java
-  // class name, for Starlark aspects it's the bzl file followed by a % sign
+  // class name, for Skylark aspects it's the bzl file followed by a % sign
   // followed by the name of the aspect.
   string name = 2;
 
@@ -172,21 +138,21 @@ message AspectDescriptor {
 }
 
 message DepSetOfFiles {
-  // Identifier for this named set of files; this is a uint32, only
+  // Identifier for this named set of files; this is an opaque string, only
   // valid for the particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
   // Other transitively included named set of files.
-  repeated uint32 transitive_dep_set_ids = 2;
+  repeated string transitive_dep_set_ids = 2;
 
   // The list of input artifact IDs that are immediately contained in this set.
-  repeated uint32 direct_artifact_ids = 3;
+  repeated string direct_artifact_ids = 3;
 }
 
 message Configuration {
-  // Identifier for this configuration; this is a uint32, only valid for
+  // Identifier for this configuration; this is an opaque string, only valid for
   // the particular dump of the analysis.
-  uint32 id = 1;
+  string id = 1;
 
   // The mnemonic representing the build configuration.
   string mnemonic = 2;
@@ -196,48 +162,6 @@ message Configuration {
 
   // The checksum representation of the configuration options;
   string checksum = 4;
-
-  // Whether this configuration is used for building tools.
-  bool is_tool = 5;
-
-  // The configuration fragments that are a part of this configuration.
-  repeated Fragment fragments = 6;
-
-  // The union of all the FragmentOptions associated with the Fragments that are
-  // a part of this configuration. These are returned separately from the
-  // fragments field because a set of FragmentOptions can be referenced by more
-  // than one Fragment, and we wish to avoid returning the same FragmentOptions
-  // repeatedly. These are sorted by the FragmentOptions name field.
-  repeated FragmentOptions fragment_options = 7;
-}
-
-// A configuration fragment
-// (http://bazel.build/rules/lib/fragments).
-message Fragment {
-  // The name of the Fragment.
-  string name = 1;
-
-  // The names of the FragmentOptions associated with this fragment in sorted
-  // order.
-  repeated string fragment_option_names = 2;
-}
-
-// A set of fragment options.
-message FragmentOptions {
-  // The name of this set of fragment options.
-  string name = 1;
-
-  // The options themselves, in sorted order by name.
-  repeated Option options = 2;
-}
-
-// A fragment option.
-message Option {
-  // The name of the option.
-  optional string name = 1;
-
-  // The value of the option.
-  optional string value = 2;
 }
 
 message KeyValuePair {
@@ -255,22 +179,14 @@ message ConfiguredTarget {
   // regular blaze query.
   blaze_query.Target target = 1;
 
-  // DEPRECATED. Use configuration_id instead.
-  Configuration configuration = 2 [deprecated = true];
-
-  // The id of the configuration this target is configured for. The actual
-  // Configuration message can be found in CqueryResults. If the target doesn't
-  // have a configuration, the value will be 0.
-  uint32 configuration_id = 3;
+  // The configuration
+  Configuration configuration = 2;
 }
 
 // Container for cquery results
 message CqueryResult {
   // All the configuredtargets returns by cquery
   repeated ConfiguredTarget results = 1;
-
-  // All the Configurations referenced by results.
-  repeated Configuration configurations = 2;
 }
 
 // Content of a param file.
@@ -281,16 +197,4 @@ message ParamFile {
   // The arguments in the param file.
   // Each argument corresponds to a line in the param file.
   repeated string arguments = 2;
-}
-
-// The path fragment that makes up a full path.
-message PathFragment {
-  // Identifier for this path fragment.
-  uint32 id = 1;
-
-  // The label of the section in the path.
-  string label = 2;
-
-  // The id of the parent path fragment.
-  uint32 parent_id = 3;
 }
