@@ -1,10 +1,19 @@
 # Java+Bazel Language Support
 
-See [`extension/vsix/README.md`](extension/vsix/README.md) for extension details.
+[Find it on the VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=siliconsoldier.java-with-bazel)
 
-## Installation (VS Code)
+See [`./extension/vsix/README.md`](./extension/vsix/README.md) for more details.
 
-[Install from the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=siliconsoldier.java-with-bazel)
+## Building
+
+For development builds
+```sh
+bazel build //extension/vsix:java_bazel_language_support --stamp
+```
+
+For release
+1. Increment version in `extension/vsix/package.json`
+2. `bazel build //extension/vsix:java_bazel_language_support`
 
 ## Design
 

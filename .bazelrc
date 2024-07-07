@@ -9,3 +9,6 @@ build --tool_java_runtime_version=21
 # Rules TS
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
+common --show_progress_rate_limit=0.05
+common:ci --show_progress_rate_limit=1
