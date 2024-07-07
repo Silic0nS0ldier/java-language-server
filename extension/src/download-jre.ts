@@ -74,12 +74,13 @@ export async function downloadJre(resolvedJre: ResolvedJre, progress: { report(_
         ? "zip"
         : "tar.gz";
     const archivePath = path.join(resolvedJre.archiveDirPath, `${resolvedJre.id}.${archiveExt}`);
-    fs.promises.mkdir(resolvedJre.archiveDirPath, { recursive: true });
-    const writeStream = fs.createWriteStream(archivePath, { autoClose: true });
+    await fs.promises.mkdir(resolvedJre.archiveDirPath, { recursive: true });
+    const writeStream = fs.createWriteStream(archivePath, { autoClose: true, flags: 'w' });
     await streamPromises.finished(res.body.pipe(writeStream));
-
-    // TODO Extract
+    
+    // Extract
     progress.report({ message: "Extracting JRE", increment: 60 });// 65
+    await fs.promises.mkdir(resolvedJre.jrePath, { recursive: true });
     if (archiveExt === "zip") {
         // Extract with "adm-zip"
         throw new Error("Not implemented");
