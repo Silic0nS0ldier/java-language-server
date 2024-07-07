@@ -37,29 +37,45 @@ import {
 } from "vscode-languageclient";
 import {loadStyles, decoration} from './textMate.js';
 import AdmZip from 'adm-zip';
-import url from 'node:url';
 import fs from "node:fs";
 import { downloadJre, resolveJre } from "./download-jre.js";
-
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 /** Called when extension is activated */
 export async function activate(context: ExtensionContext) {
     console.log('Activating Java');
 
+    const outputChannel = window.createOutputChannel("Java Language Server");
+
     // Teach VSCode to open JAR files
     workspace.registerTextDocumentContentProvider('jar', new JarFileSystemProvider());
-
-    debug.registerDebugAdapterDescriptorFactory("java", new DebugAdapterExecutableFactory());
 
     // Download JRE (if required)
     const resolvedJre = await resolveJre(context.globalStorageUri.fsPath);
     if (!fs.existsSync(resolvedJre.javaPath)) {
+        outputChannel.appendLine("Downloading JRE");
         await window.withProgress(
             { location: ProgressLocation.Notification },
             progress => downloadJre(resolvedJre, progress),
         );
+        outputChannel.appendLine("Download complete");
     };
+
+    class DebugAdapterExecutableFactory implements DebugAdapterDescriptorFactory {
+        createDebugAdapterDescriptor(
+            _session: DebugSession,
+            _executable: DebugAdapterExecutable,
+        ): ProviderResult<DebugAdapterDescriptor> {
+            const debugServerJarPath = context.asAbsolutePath('debug-server.jar');
+            const args = [
+                "-jar", debugServerJarPath,
+            ];
+            const options: DebugAdapterExecutableOptions = {};
+    
+            return new DebugAdapterExecutable(resolvedJre.javaPath, args, options);
+        }
+    }
+
+    debug.registerDebugAdapterDescriptorFactory("java", new DebugAdapterExecutableFactory());
     
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
@@ -81,12 +97,11 @@ export async function activate(context: ExtensionContext) {
                 workspace.createFileSystemWatcher('**/*.bzl'),
             ]
         },
-        outputChannelName: 'Java Language Server',
+        outputChannel,
         revealOutputChannelOn: 4, // never
     };
 
-    // TODO Use context.asAbsolutePath
-    const languageServerJarPath = path.join(__dirname, '../language-server.jar');
+    const languageServerJarPath = context.asAbsolutePath("language-server.jar");
     
     // Start the child java process
     let serverOptions: ServerOptions = {
@@ -198,23 +213,6 @@ class JarFileSystemProvider implements TextDocumentContentProvider {
             }
         });
     }
-}
-
-class DebugAdapterExecutableFactory implements DebugAdapterDescriptorFactory {
-    createDebugAdapterDescriptor(
-        _session: DebugSession,
-        _executable: DebugAdapterExecutable,
-    ): ProviderResult<DebugAdapterDescriptor> {
-        const javaPath = "";
-        const debugServerJarPath = path.resolve(__dirname, '../debug-server.jar');
-        const args = [
-            "-jar", debugServerJarPath,
-        ];
-        const options: DebugAdapterExecutableOptions = {};
-
-        return new DebugAdapterExecutable(javaPath, args, options);
-    }
-
 }
 
 // this method is called when your extension is deactivated
