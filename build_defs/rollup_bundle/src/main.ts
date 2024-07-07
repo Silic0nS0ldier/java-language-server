@@ -2,9 +2,11 @@ import { cli } from "cleye";
 import { rollup } from "rollup";
 import commonjs__ from "@rollup/plugin-commonjs";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import json__ from "@rollup/plugin-json";
 
 // Work around https://github.com/rollup/plugins/issues/1662
 const commonjs = commonjs__ as unknown as typeof commonjs__.default;
+const json = json__ as unknown as typeof json__.default;
 
 const argv = cli({
     flags: {
@@ -56,6 +58,8 @@ const bundle = await (async () => {
             plugins: [
                 nodeResolve(),
                 commonjs(),
+                // Required for packages which import JSON (e.g. `package.json`) via `require`
+                json(),
             ],
             external: externalModules,
         });
