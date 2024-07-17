@@ -23,12 +23,12 @@ copy_file(
 # Copy jars
 copy_file(
     name = "copy_language_server_jar",
-    src = "//server/src/main:language_server_deploy.jar",
+    src = "//server/src/main:language_server.jar",
     out = "language-server.jar",
 )
 copy_file(
     name = "copy_debug_server_jar",
-    src = "//server/src/main:debug_server_deploy.jar",
+    src = "//server/src/main:debug_server.jar",
     out = "debug-server.jar",
 )
 

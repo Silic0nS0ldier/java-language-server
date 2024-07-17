@@ -1,4 +1,5 @@
-load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_proto_library")
+load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
+load("@rules_java//java:java_single_jar.bzl", "java_single_jar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # Output of interest is main_deploy.jar
@@ -17,35 +18,6 @@ add_opens = [
     "jdk.compiler/com.sun.tools.javac.api",
 ]
 
-java_binary(
-    name = "language_server",
-    main_class = "org.javacs.Main",
-    srcs = glob(["java/**/*.java"]),
-    deps = [
-        "@maven//:com_google_code_gson_gson",
-        "@maven//:com_google_protobuf_protobuf_java",
-        ":analysis_java_proto",
-    ],
-    add_exports = add_exports,
-    add_opens = add_opens,
-    visibility = ["//server/src/test:__pkg__", "//extension/vsix:__pkg__"]
-)
-
-# TODO This binary can be trimmed down a lot, most of the source is for the language server
-java_binary(
-    name = "debug_server",
-    main_class = "org.javacs.debug.JavaDebugServer",
-    srcs = glob(["java/**/*.java"]),
-    deps = [
-        "@maven//:com_google_code_gson_gson",
-        "@maven//:com_google_protobuf_protobuf_java",
-        ":analysis_java_proto",
-    ],
-    add_exports = add_exports,
-    add_opens = add_opens,
-    visibility = ["//server/src/test:__pkg__", "//extension/vsix:__pkg__"]
-)
-
 java_library(
     name = "lib",
     srcs = glob(["java/**/*.java"]),
@@ -56,7 +28,32 @@ java_library(
     ],
     add_exports = add_exports,
     add_opens = add_opens,
-    visibility = ["//server/src/test:__pkg__"]
+    visibility = ["//server/src/test:__pkg__"],
+)
+
+java_single_jar(
+    name = "language_server",
+    deps = [":lib"],
+    deploy_manifest_lines = [
+        "Main-Class: org.javacs.Main",
+        # These are not carried forward :(
+        "Add-Opens: jdk.compiler/com.sun.tools.javac.api",
+    ] + ["Add-Exports: " + package for package in add_exports]
+    + ["Add-Opens: " + package for package in add_opens],
+    visibility =  ["//extension/vsix:__pkg__"],
+)
+
+# TODO This binary can be trimmed down a lot, most of the source is for the language server
+java_single_jar(
+    name = "debug_server",
+    deps = [":lib"],
+    deploy_manifest_lines = [
+        "Main-Class: org.javacs.debug.JavaDebugServer",
+        # These are not carried forward :(
+        "Add-Opens: jdk.compiler/com.sun.tools.javac.api",
+    ] + ["Add-Exports: " + package for package in add_exports]
+    + ["Add-Opens: " + package for package in add_opens],
+    visibility =  ["//extension/vsix:__pkg__"],
 )
 
 proto_library(
