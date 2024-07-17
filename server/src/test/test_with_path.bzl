@@ -85,3 +85,8 @@ with_path_test = rule(
         "@bazel_tools//tools/jdk:toolchain_type",
     ],
 )
+
+# PLANNING
+# Have custom rules to map things like Java toolchains to a standard provider
+# Have a rule which creates a binary wrapper using the custom providers
+# A single file binary (e.g. Rust app) will probably be the best option for a binary wrapper
