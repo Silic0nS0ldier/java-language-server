@@ -1,20 +1,4 @@
-/out
-/node_modules
-/target
-/dist/classpath
-/dist/linux
-/dist/mac
-/dist/windows
-/jdks
+.bazel/
 
-/dependency-reduced-pom.xml
-/classpath.txt
-/test-classpath.txt
-/docpath.txt
-
-*.log
-*.log.*
-.idea
-*.iml
-*.vsix
-.DS_store
+.pnpm-store/
+node_modules/

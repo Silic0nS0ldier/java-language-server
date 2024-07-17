@@ -1,0 +1,175 @@
+{
+    "name": "java-with-bazel",
+    "displayName": "Java+Bazel Language Support",
+    "description": "Fork of George Fraser's Java Langauge Server extension with updates and improved Bazel support.",
+    "icon": "icon.png",
+    "version": "0.2.47",
+    "publisher": "siliconsoldier",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/siliconsoldier/java-language-server"
+    },
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.90.0"
+    },
+    "categories": [
+        "Debuggers",
+        "Programming Languages",
+        "Linters"
+    ],
+    "keywords": [
+        "java"
+    ],
+    "activationEvents": [
+        "onLanguage:java",
+        "onDebug"
+    ],
+    "main": "./src/main.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "java",
+                "extensions": [
+                    ".java"
+                ],
+                "aliases": [
+                    "Java"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "java",
+                "scopeName": "source.java",
+                "path": "./java.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "java",
+                "path": "./snippets/java.json"
+            }
+        ],
+        "configuration": {
+            "title": "Java configuration",
+            "properties": {
+                "java.home": {
+                    "type": "string",
+                    "description": "Absolute path to your Java home directory"
+                },
+                "java.classPath": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Relative paths from workspace root to .jar files, .zip files, or folders that should be included in the Java class path"
+                },
+                "java.docPath": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Relative paths from workspace root to .jar files or .zip files containing source code, or to folders that should be included in the Java doc path"
+                },
+                "java.externalDependencies": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[^:]+:[^:]+:[^:]+(:[^:]+:[^:]+)?$"
+                    },
+                    "description": "External dependencies of the form groupId:artifactId:version or groupId:artifactId:packaging:version:scope"
+                },
+                "java.testMethod": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Command to run one test method, for example [\"mvn\", \"test\", \"-Dtest=${class}#${method}\""
+                },
+                "java.debugTestMethod": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Command to debug one test method, for example [\"mvn\", \"test\", \"-Dmaven.surefire.debug\", \"-Dtest=${class}#${method}\". The test should start paused, listening for the debugger on port 5005."
+                },
+                "java.testClass": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Command to run all tests in a class, for example [\"mvn\", \"test\", \"-Dtest=${class}\""
+                },
+                "java.addExports": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of modules to allow access to, for example [\"jdk.compiler/com.sun.tools.javac.api\"]"
+                },
+                "java.trace.server": {
+                    "scope": "window",
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "off",
+                    "description": "Traces the communication between VSCode and the language server."
+                }
+            }
+        },
+        "breakpoints": [
+            {
+                "language": "java"
+            }
+        ],
+        "debuggers": [
+            {
+                "type": "java",
+                "label": "Java",
+                "languages": [
+                    "java"
+                ],
+                "configurationAttributes": {
+                    "attach": {
+                        "required": [
+                            "port",
+                            "sourceRoots"
+                        ],
+                        "properties": {
+                            "port": {
+                                "type": "integer",
+                                "description": "The same port you used in -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y",
+                                "default": "5005"
+                            },
+                            "sourceRoots": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Directories that are the root of a tree of source files. For example, if there is a class `com.foo.MyClass` in `src/java/com/foo/MyClass`, then `src/java` is a source root."
+                            }
+                        }
+                    }
+                },
+                "configurationSnippets": [
+                    {
+                        "label": "Java Debug: Attach",
+                        "description": "Debug a running java program using JDWP.",
+                        "body": {
+                            "type": "java",
+                            "request": "attach",
+                            "name": "Java",
+                            "port": 5005,
+                            "sourceRoots": []
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

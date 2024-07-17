@@ -1,0 +1,64 @@
+module(name = "bazel_java_vscode")
+
+# TODO https://github.com/bazel-contrib/rules_bazel_integration_test for bazel testing
+# Will also help automate --deleted_packages management.
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.8")
+bazel_dep(name = "aspect_rules_js", version = "2.0.0-rc6")
+bazel_dep(name = "aspect_rules_ts", version = "3.0.0-rc1")
+bazel_dep(name = "rules_java", version = "7.6.5")
+bazel_dep(name = "rules_jvm_external", version = "6.1")
+bazel_dep(name = "rules_nodejs", version = "6.2.0")
+bazel_dep(name = "rules_proto", version = "6.0.2")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "com.google.code.gson:gson:2.11.0",
+        "com.google.protobuf:protobuf-java:3.25.3",
+        # Test dependencies
+        # TODO Update to JUnit 5
+        "junit:junit:4.13.2",
+        "org.hamcrest:hamcrest:2.2",
+        # Benchmarking
+        "org.openjdk.jmh:jmh-core:1.37",
+        "org.openjdk.jmh:jmh-generator-annprocess:1.37",
+    ],
+    lock_file = "//:maven_install.json",
+)
+use_repo(maven, "maven")
+
+java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(
+    java_toolchains,
+    "remote_java_tools",
+    "remote_java_tools_darwin_arm64",
+    "remote_java_tools_darwin_x86_64",
+    "remote_java_tools_linux",
+    "remote_java_tools_windows",
+    "remotejdk21_linux",
+    "remotejdk21_macos",
+    "remotejdk21_macos_aarch64",
+    "remotejdk21_win",
+)
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "20.14.0")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+    npmrc = "//:.npmrc",
+)
+use_repo(npm, "npm")
+
+pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
+use_repo(pnpm, "pnpm")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(
+    ts_version_from = "@npm//:typescript/resolved.json",
+)
+use_repo(rules_ts_ext, "npm_typescript")

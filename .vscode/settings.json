@@ -15,7 +15,7 @@
         "out": true // set this to false to include "out" folder in search results
     },
     "[java]": {
-        "editor.formatOnSave": true
+        "editor.formatOnSave": false
     },
     "java.testMethod": ["mvn", "test", "-Dtest=${class}#${method}"],
     "java.debugTestMethod": ["mvn", "test", "-Dtest=${class}#${method}", "-Dmaven.surefire.debug"],

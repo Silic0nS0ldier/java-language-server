@@ -1,0 +1,3 @@
+packages:
+  - extension
+  - 'build_defs/*'

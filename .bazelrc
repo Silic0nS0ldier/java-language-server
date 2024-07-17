@@ -1,0 +1,21 @@
+common --symlink_prefix=.bazel/
+
+# Enable Java 21 language features
+build --java_runtime_version=21
+build --java_language_version=21
+build --tool_java_language_version=21
+build --tool_java_runtime_version=21
+
+# Rules TS
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
+common --show_progress_rate_limit=0.05
+common:ci --show_progress_rate_limit=1
+
+# For integration tests
+common --deleted_packages examples/bazel-project/hello
+common --deleted_packages examples/bazel-project-broken/broken
+common --deleted_packages examples/bazel-project-broken/hello
+common --deleted_packages examples/bazel-protos-project/hello
+common --deleted_packages examples/bazel-protos-project/protos
