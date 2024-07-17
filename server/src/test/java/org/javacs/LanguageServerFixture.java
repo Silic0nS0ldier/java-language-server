@@ -9,8 +9,8 @@ import org.javacs.lsp.*;
 
 public class LanguageServerFixture {
 
-    public static Path DEFAULT_WORKSPACE_ROOT = Paths.get("src/test/examples/maven-project").normalize();
-    public static Path SIMPLE_WORKSPACE_ROOT = Paths.get("src/test/examples/simple-project").normalize();
+    public static Path DEFAULT_WORKSPACE_ROOT = Paths.get("examples/maven-project").normalize();
+    public static Path SIMPLE_WORKSPACE_ROOT = Paths.get("examples/simple-project").normalize();
 
     static {
         Main.setRootFormat();

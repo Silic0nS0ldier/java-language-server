@@ -13,6 +13,6 @@ public class FindResource {
 
     public static Path path(String resourcePath) {
         if (resourcePath.startsWith("/")) resourcePath = resourcePath.substring(1);
-        return Paths.get("./src/test/examples/maven-project/src").resolve(resourcePath).toAbsolutePath().normalize();
+        return Paths.get("./examples/maven-project/src").resolve(resourcePath).toAbsolutePath().normalize();
     }
 }

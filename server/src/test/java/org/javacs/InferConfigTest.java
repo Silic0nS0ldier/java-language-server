@@ -9,9 +9,9 @@ import java.util.Set;
 import org.junit.Test;
 
 public class InferConfigTest {
-    private Path workspaceRoot = Paths.get("src/test/examples/maven-project");
-    private Path mavenHome = Paths.get("src/test/examples/home-dir/.m2");
-    private Path gradleHome = Paths.get("src/test/examples/home-dir/.gradle");
+    private Path workspaceRoot = Paths.get("examples/maven-project");
+    private Path mavenHome = Paths.get("examples/home-dir/.m2");
+    private Path gradleHome = Paths.get("examples/home-dir/.gradle");
     private Set<String> externalDependencies = Set.of("com.external:external-library:1.2");
     private InferConfig both = new InferConfig(workspaceRoot, externalDependencies, mavenHome, gradleHome);
     private InferConfig gradle = new InferConfig(workspaceRoot, externalDependencies, Paths.get("nowhere"), gradleHome);

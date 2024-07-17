@@ -25,9 +25,9 @@ java_library(
     ],
 )
 
-# TODO Several tests are integration tests that need to be handled separately
 java_test(
     name = "test",
     test_class = "org.javacs.AllTests",
     runtime_deps = [":test_lib"],
+    data = ["//examples:example_srcs"],
 )

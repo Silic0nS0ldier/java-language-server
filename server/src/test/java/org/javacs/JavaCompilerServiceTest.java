@@ -16,7 +16,7 @@ public class JavaCompilerServiceTest {
             new JavaCompilerService(Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 
     static Path simpleProjectSrc() {
-        return Paths.get("src/test/examples/simple-project").normalize();
+        return Paths.get("examples/simple-project").normalize();
     }
 
     @Before

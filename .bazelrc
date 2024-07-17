@@ -12,3 +12,10 @@ common --@aspect_rules_ts//ts:default_to_tsc_transpiler
 
 common --show_progress_rate_limit=0.05
 common:ci --show_progress_rate_limit=1
+
+# For integration tests
+common --deleted_packages examples/bazel-project/hello
+common --deleted_packages examples/bazel-project-broken/broken
+common --deleted_packages examples/bazel-project-broken/hello
+common --deleted_packages examples/bazel-protos-project/hello
+common --deleted_packages examples/bazel-protos-project/protos

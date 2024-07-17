@@ -11,7 +11,7 @@ import org.javacs.debug.proto.*;
 import org.junit.Test;
 
 public class JavaDebugServerTest {
-    Path workingDirectory = Paths.get("src/test/examples/debug");
+    Path workingDirectory = Paths.get("examples/debug");
     DebugClient client = new MockClient();
     JavaDebugServer server = new JavaDebugServer(client);
     Process process;

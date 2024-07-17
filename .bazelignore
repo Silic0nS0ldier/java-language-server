@@ -1,5 +1,3 @@
-examples/
-
 node_modules
 extension/node_modules
 build_defs/rollup_bundle/node_modules

@@ -14,7 +14,7 @@ public class JavaLanguageServerTest {
 
     @Test
     public void LintShouldNotCrashOnCodeWithMissingTypeIdentifier() {
-        String filePath = "src/test/examples/missing-type-identifier/Sample.java";
+        String filePath = "examples/missing-type-identifier/Sample.java";
         TextDocumentItem textDocument = new TextDocumentItem();
         textDocument.uri = URI.create("file:///" + filePath);
         try {
