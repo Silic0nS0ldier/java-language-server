@@ -10,6 +10,7 @@ build --tool_java_runtime_version=21
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
 
+# CI UI optimisations
 common --show_progress_rate_limit=0.05
 common:ci --show_progress_rate_limit=1
 
@@ -19,3 +20,6 @@ common --deleted_packages examples/bazel-project-broken/broken
 common --deleted_packages examples/bazel-project-broken/hello
 common --deleted_packages examples/bazel-protos-project/hello
 common --deleted_packages examples/bazel-protos-project/protos
+
+# For protobuf
+common --incompatible_enable_proto_toolchain_resolution

@@ -9,6 +9,7 @@ bazel_dep(name = "rules_java", version = "7.6.5")
 bazel_dep(name = "rules_jvm_external", version = "6.1")
 bazel_dep(name = "rules_nodejs", version = "6.2.0")
 bazel_dep(name = "rules_proto", version = "6.0.2")
+bazel_dep(name = "toolchains_protoc", version = "0.3.1")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
@@ -62,3 +63,22 @@ rules_ts_ext.deps(
     ts_version_from = "@npm//:typescript/resolved.json",
 )
 use_repo(rules_ts_ext, "npm_typescript")
+
+protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
+protoc.toolchain(
+    google_protobuf = "com_google_protobuf",
+    version = "v27.1",
+)
+use_repo(protoc, "toolchains_protoc_hub")
+register_toolchains(
+    "@toolchains_protoc//tools/toolchains:all",
+    "@toolchains_protoc_hub//:all",
+    "//build_defs/protoc:protoc_java_toolchain",
+)
+
+http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+http_jar(
+    name = "protobuf-java",
+    sha256 = "0532ad1024d62361561acaedb974d7d16889e7670b36e23e9321dd6b9d334ef9",
+    urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.27.0-RC3/protobuf-java-4.27.0-RC3.jar"],
+)
