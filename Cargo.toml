@@ -1,0 +1,11 @@
+[package]
+name = "java-language-server"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "/dev/null"
+
+[dependencies]
+libsui = "0.2.0"

@@ -1,3 +1,5 @@
+common --enable_platform_specific_config
+
 common --symlink_prefix=.bazel/
 
 # Enable Java 21 language features
@@ -21,5 +23,15 @@ common --deleted_packages examples/bazel-project-broken/hello
 common --deleted_packages examples/bazel-protos-project/hello
 common --deleted_packages examples/bazel-protos-project/protos
 
+# For hermetic CC toolchains
+# TODO Use a hermetic cache
+build:linux --sandbox_add_mount_pair=/tmp
+build:macos --sandbox_add_mount_pair=/var/tmp
+build:windows --sandbox_add_mount_pair=C:\Temp
+#build --sandbox_add_mount_pair=%workspace%/.bazel/zig-cache
+#build --repo_env=HERMETIC_CC_TOOLCHAIN_CACHE_PREFIX=%workspace%/.bazel/zig-cache
+build --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+
 # For protobuf
+# Note, Rust does not support this but we don't need proto support there so it is fine
 common --incompatible_enable_proto_toolchain_resolution

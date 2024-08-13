@@ -9,6 +9,8 @@ bazel_dep(name = "rules_java", version = "7.6.5")
 bazel_dep(name = "rules_jvm_external", version = "6.1")
 bazel_dep(name = "rules_nodejs", version = "6.2.0")
 bazel_dep(name = "rules_proto", version = "6.0.2")
+bazel_dep(name = "hermetic_cc_toolchain", version = "3.1.0")
+bazel_dep(name = "rules_rust", version = "0.49.2")
 bazel_dep(name = "toolchains_protoc", version = "0.3.1")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
@@ -63,6 +65,32 @@ rules_ts_ext.deps(
     ts_version_from = "@npm//:typescript/resolved.json",
 )
 use_repo(rules_ts_ext, "npm_typescript")
+
+toolchains = use_extension("@hermetic_cc_toolchain//toolchain:ext.bzl", "toolchains")
+use_repo(toolchains, "zig_sdk")
+
+register_toolchains(
+    "@zig_sdk//toolchain:linux_amd64_gnu.2.31",
+    "@zig_sdk//toolchain:linux_arm64_gnu.2.31",
+    "@zig_sdk//toolchain:windows_amd64",
+    "@zig_sdk//toolchain:windows_arm64",
+)
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    versions = ["1.80.1"],
+    edition = "2021",
+)
+use_repo(rust, "rust_toolchains")
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = ["//:Cargo.toml"],
+)
+use_repo(crate, "crates")
 
 protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
 protoc.toolchain(
