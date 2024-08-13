@@ -2,3 +2,6 @@
 
 .pnpm-store/
 node_modules/
+
+rust-project.json
+target

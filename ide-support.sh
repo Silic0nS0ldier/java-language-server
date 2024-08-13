@@ -19,3 +19,7 @@ cp -r --no-preserve=mode ./.bazel/bin/node_modules ./
 cp -r --no-preserve=mode ./.bazel/bin/extension/node_modules ./extension
 cp -r --no-preserve=mode ./.bazel/bin/build_defs/rollup_bundle/node_modules ./build_defs/rollup_bundle
 cp -r --no-preserve=mode ./.bazel/bin/build_defs/vsce_package/node_modules ./build_defs/vsce_package
+
+# Generate `rust-project.json`
+echo "Building rust-project.json"
+bazel run @rules_rust//tools/rust_analyzer:gen_rust_project 
