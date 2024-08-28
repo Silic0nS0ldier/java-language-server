@@ -8,4 +8,5 @@ publish = false
 path = "/dev/null"
 
 [dependencies]
+clap = { version = "4.5.16", features = ["derive"] }
 libsui = "0.2.0"

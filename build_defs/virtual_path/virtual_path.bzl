@@ -22,14 +22,37 @@ def _with_virtual_path_impl(ctx, is_test):
         forwarded_providers.append(binary[InstrumentedFilesInfo])
 
     # TODO The actual wrapper
+    in_wrapper = ctx.executable._wrapper
+    out_wrapper = ctx.actions.declare_file(ctx.label.name)
+    ctx.actions.run(
+        outputs = [out_wrapper],
+        arguments = [],
+        env = {},
+        executable = ctx.executable._sui,
+        inputs = [in_wrapper],
+    )
 
-    return [] + forwarded_providers
+    return [
+        DefaultInfo(
+            executable = out_wrapper,
+        )
+    ] + forwarded_providers
 
 _ATTRS = {
     "executables": attr.label_list(
         mandatory = True,
         providers = [VirtualPathExecutable],
     ),
+    "_wrapper": attr.label(
+        default = Label("//build_defs/virtual_path:wrapper"),
+        executable = True,
+        cfg = "target",
+    ),
+    "_sui": attr.label(
+        default = Label("//..."),
+        executable = True,
+        cfg = "exec",
+    )
 }
 
 with_virtual_path_binary = rule(
