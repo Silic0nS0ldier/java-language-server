@@ -1,4 +1,5 @@
 load("@rules_rust//rust:defs.bzl", "rust_binary")
+load(":java.bzl", "java_bin")
 
 rust_binary(
     name = "wrapper",
@@ -7,4 +8,8 @@ rust_binary(
         "@crates//:clap",
         "@crates//:libsui",
     ],
+)
+
+java_bin(
+    name = "java",
 )
