@@ -21,6 +21,17 @@ def _with_virtual_path_impl(ctx, is_test):
     if is_test:
         forwarded_providers.append(binary[InstrumentedFilesInfo])
 
+    # Collect all executables and create `PATH` ready directory
+    env_path = ctx.label.name + "__bin"
+    executable_files = []
+    executable_symlinks = []
+    for executable in ctx.attr.executables:
+        bin = executable[VirtualPathExecutable].executable # type: File
+        executable_files.extend([bin] + executable[VirtualPathExecutable].data)
+        bin_symlink = ctx.actions.declare_file(env_path + "/" + bin.basename)
+        executable_symlinks.append(bin_symlink)
+        ctx.actions.symlink(bin, bin_symlink, is_executable = True)
+
     # TODO The actual wrapper
     in_wrapper = ctx.executable._wrapper
     out_wrapper = ctx.actions.declare_file(ctx.label.name)
@@ -43,13 +54,8 @@ _ATTRS = {
         mandatory = True,
         providers = [VirtualPathExecutable],
     ),
-    "_wrapper": attr.label(
-        default = Label("//build_defs/virtual_path:wrapper"),
-        executable = True,
-        cfg = "target",
-    ),
     "_sui": attr.label(
-        default = Label("//..."),
+        default = Label("//build_defs/virtual_path:sui"),
         executable = True,
         cfg = "exec",
     )
@@ -71,19 +77,19 @@ with_virtual_path_binary = rule(
     }, **_ATTRS),
 )
 
-with_virtual_path_test = rule(
-    implementation = _with_virtual_path_impl,
-    attrs = dict({
-        "test": attr.label(
-            providers = [
-                DefaultInfo,
-                InstrumentedFilesInfo,
-                RunEnvironmentInfo,
-                #FileProvider,
-                #FilesToRunProvider,
-            ],
-            cfg = "target",
-            mandatory = True,
-        ),
-    }, **_ATTRS),
-)
+# with_virtual_path_test = rule(
+#     implementation = _with_virtual_path_impl,
+#     attrs = dict({
+#         "test": attr.label(
+#             providers = [
+#                 DefaultInfo,
+#                 InstrumentedFilesInfo,
+#                 RunEnvironmentInfo,
+#                 #FileProvider,
+#                 #FilesToRunProvider,
+#             ],
+#             cfg = "target",
+#             mandatory = True,
+#         ),
+#     }, **_ATTRS),
+# )

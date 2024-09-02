@@ -2,10 +2,18 @@ load("@rules_rust//rust:defs.bzl", "rust_binary")
 load(":java.bzl", "java_bin")
 
 rust_binary(
-    name = "wrapper",
-    srcs = glob(["src/**/*.rs"]),
+    name = "sui",
+    srcs = glob(["sui/**/*.rs"]),
     deps = [
         "@crates//:clap",
+        "@crates//:libsui",
+    ],
+)
+
+rust_binary(
+    name = "wrap",
+    srcs = glob(["wrap/**/*.rs"]),
+    deps = [
         "@crates//:libsui",
     ],
 )

@@ -1,9 +1,9 @@
-use std::{io::BufWriter, path::PathBuf};
+use std::{fs, io::BufWriter, path::PathBuf};
 
 use libsui::{Elf, Macho, PortableExecutable, utils::{
     is_elf, is_macho, is_pe
 }};
-use clap::{Parser};
+use clap::Parser;
 
 #[derive(Parser)]
 #[command()]
@@ -15,9 +15,9 @@ struct CliArgs {
 }
 
 fn main() {
-    let _ = CliArgs::parse();
+    let args = CliArgs::parse();
 
-    let exe = "exe".as_bytes().to_vec();
+    let exe = fs::read(args.input).unwrap();
     let mut out = BufWriter::new(Vec::new());
     let data = "data".as_bytes().to_vec();
 
