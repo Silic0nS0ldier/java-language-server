@@ -32,7 +32,7 @@ def _with_virtual_path_impl(ctx, is_test):
         executable_files.extend([bin] + executable[VirtualPathExecutable].data)
         bin_symlink = ctx.actions.declare_file(env_path + "/" + bin.basename)
         executable_symlinks.append(bin_symlink)
-        ctx.actions.symlink(output = bin, target_file = bin_symlink, is_executable = True)
+        ctx.actions.symlink(output = bin_symlink, target_file = bin, is_executable = True)
 
     # Create meta
     meta_file = ctx.actions.declare_file(ctx.label.name + "__meta.json")
