@@ -51,4 +51,8 @@ with_virtual_path_test(
         ":java",
         ":maven",
     ],
+    tags = [
+        # For maven dependency resolution, and maybe bazel
+        "requires-network",
+    ],
 )

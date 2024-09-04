@@ -104,11 +104,12 @@ register_toolchains(
     "//build_defs/protoc:protoc_java_toolchain",
 )
 
+# MUST Match protoc toolchain version
 http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 http_jar(
     name = "protobuf-java",
-    sha256 = "0532ad1024d62361561acaedb974d7d16889e7670b36e23e9321dd6b9d334ef9",
-    urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.27.0-RC3/protobuf-java-4.27.0-RC3.jar"],
+    sha256 = "798c79f6c9fc6859cc76aa5474228aad250821438e1004dad34880d53aa745f9",
+    urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.27.1/protobuf-java-4.27.1.jar"],
 )
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
