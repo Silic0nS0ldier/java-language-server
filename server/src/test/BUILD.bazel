@@ -1,4 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library", "java_test")
+load("//build_defs/virtual_path:virtual_path.bzl", "with_virtual_path_test")
+load("//build_defs/virtual_path:java.bzl", "java_bin")
 
 java_library(
     name = "test_lib",
@@ -30,4 +32,16 @@ java_test(
     test_class = "org.javacs.AllTests",
     runtime_deps = [":test_lib"],
     data = ["//examples:example_srcs"],
+)
+
+java_bin(
+    name = "java",
+)
+
+with_virtual_path_test(
+    name = "test2",
+    test = ":test",
+    executables = [
+        ":java",
+    ],
 )

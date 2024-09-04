@@ -9,4 +9,5 @@ path = "/dev/null"
 
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }
-libsui = "0.2.0"
+serde = { version = "1.0.209", features = ["derive"] }
+serde_json = { version = "1.0.127" }
