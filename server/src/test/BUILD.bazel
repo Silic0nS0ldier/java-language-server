@@ -49,5 +49,6 @@ with_virtual_path_test(
     test = ":test",
     executables = [
         ":java",
+        ":maven",
     ],
 )

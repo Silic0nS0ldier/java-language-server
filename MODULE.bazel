@@ -122,10 +122,12 @@ http_archive(
 alias(
     name = "bin",
     actual = "src/bin/mvn",
+    visibility = ["//visibility:public"],
 )
 filegroup(
     name = "bin_files",
     srcs = glob(["src/**/*"], exclude = ["src/bin/mvn"]),
+    visibility = ["//visibility:public"],
 )
     """,
 )
