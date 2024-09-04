@@ -110,3 +110,22 @@ http_jar(
     sha256 = "0532ad1024d62361561acaedb974d7d16889e7670b36e23e9321dd6b9d334ef9",
     urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.27.0-RC3/protobuf-java-4.27.0-RC3.jar"],
 )
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "maven_cli",
+    sha256 = "7a9cdf674fc1703d6382f5f330b3d110ea1b512b51f1652846d9e4e8a588d766",
+    urls = ["https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"],
+    strip_prefix = "apache-maven-3.9.9",
+    add_prefix = "src",
+    build_file_content = """
+alias(
+    name = "bin",
+    actual = "src/bin/mvn",
+)
+filegroup(
+    name = "bin_files",
+    srcs = glob(["src/**/*"], exclude = ["src/bin/mvn"]),
+)
+    """,
+)

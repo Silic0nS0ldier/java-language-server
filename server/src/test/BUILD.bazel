@@ -1,6 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_library", "java_test")
 load("//build_defs/virtual_path:virtual_path.bzl", "with_virtual_path_test")
 load("//build_defs/virtual_path:java.bzl", "java_bin")
+load("//build_defs/virtual_path:maven.bzl", "maven_bin")
 
 java_library(
     name = "test_lib",
@@ -36,6 +37,11 @@ java_test(
 
 java_bin(
     name = "java",
+)
+
+# Depends on java
+maven_bin(
+    name = "maven",
 )
 
 with_virtual_path_test(

@@ -2,7 +2,6 @@ load(":virtual_path.bzl", "VirtualPathExecutable")
 
 def _impl(ctx):
     # type: (ctx) -> unknown
-    pass
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
     java_runtime_files = java_runtime.files.to_list() # type: list[File]
 
@@ -19,7 +18,7 @@ def _impl(ctx):
         if f.path.find("conf/") > 0 or f.path.find("lib/") > 0:
             java_bin_files.append(f)
 
-    # TODO Ensure java bin found
+    # Ensure java bin found
     if java_bin == None:
         fail("Could not resolve Java binary from toolchain")
 
