@@ -33,7 +33,11 @@ public class ClassesTest {
     public void platformClassPath() throws Exception {
         var fs = FileSystems.getFileSystem(URI.create("jrt:/"));
         var path = fs.getPath("/");
-        Files.walk(path).forEach(p -> System.out.println(p));
+        Files.walk(path).forEach(p -> {
+            if (org.javacs.Main.showMiscLogging) {
+                System.out.println(p);
+            }
+        });
     }
 
     @Test
@@ -56,13 +60,15 @@ public class ClassesTest {
     @Test
     @Ignore
     public void printAncestors() throws Exception {
-        System.out.println("This:");
-        ancestors(this.getClass().getClassLoader());
-        System.out.println("List:");
-        ancestors(java.util.List.class.getClassLoader());
-        System.out.println("System:");
-        ancestors(ClassLoader.getSystemClassLoader());
-        System.out.println("Platform:");
-        ancestors(ClassLoader.getPlatformClassLoader());
+        if (org.javacs.Main.showMiscLogging) {
+            System.out.println("This:");
+            ancestors(this.getClass().getClassLoader());
+            System.out.println("List:");
+            ancestors(java.util.List.class.getClassLoader());
+            System.out.println("System:");
+            ancestors(ClassLoader.getSystemClassLoader());
+            System.out.println("Platform:");
+            ancestors(ClassLoader.getPlatformClassLoader());
+        }
     }
 }

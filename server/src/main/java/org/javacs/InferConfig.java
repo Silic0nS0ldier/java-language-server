@@ -196,7 +196,7 @@ class InferConfig {
                     new ProcessBuilder()
                             .command(command)
                             .directory(workingDirectory)
-                            .redirectError(ProcessBuilder.Redirect.INHERIT)
+                            .redirectError(org.javacs.Main.showMiscLogging ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.DISCARD)
                             .redirectOutput(output.toFile())
                             .start();
             // Wait for process to exit
@@ -487,7 +487,7 @@ class InferConfig {
                     new ProcessBuilder()
                             .command(command)
                             .directory(workspaceRoot.toFile())
-                            .redirectError(ProcessBuilder.Redirect.INHERIT)
+                            .redirectError(org.javacs.Main.showMiscLogging ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.DISCARD)
                             .redirectOutput(output.toFile())
                             .start();
             // Wait for process to exit

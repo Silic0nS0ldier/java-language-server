@@ -1,5 +1,6 @@
 package org.javacs;
 
+import java.util.logging.LogManager;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -36,4 +37,8 @@ import org.javacs.rewrite.RewriteTest;
     RewriteTest.class,
 })
 public class AllTests {
+    static {
+        LogManager.getLogManager().reset();
+        org.javacs.Main.showMiscLogging = false;
+    }
 }

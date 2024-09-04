@@ -20,7 +20,9 @@ public class JavaLanguageServerTest {
         try {
             textDocument.text = Files.readString(Path.of(filePath));
         } catch (IOException e) {
-            System.out.println(e.toString());
+            if (org.javacs.Main.showMiscLogging) {
+                System.out.println(e.toString());
+            }
         }
         textDocument.version = 1;
         textDocument.languageId = "java";

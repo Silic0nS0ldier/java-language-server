@@ -6,6 +6,9 @@ import java.util.logging.Logger;
 import org.javacs.lsp.*;
 
 public class Main {
+    // A source of truth for output that cannot use the standard logging infra
+    public static boolean showMiscLogging = true;
+
     private static final Logger LOG = Logger.getLogger("main");
 
     public static void setRootFormat() {
@@ -21,6 +24,7 @@ public class Main {
 
         if (quiet) {
             LOG.setLevel(Level.OFF);
+            showMiscLogging = false;
         }
 
         try {

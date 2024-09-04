@@ -61,7 +61,12 @@ public class JavaDebugServerTest {
         var command =
                 List.of("java", "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y", mainClass);
         LOG.info("Launch " + String.join(", ", command));
-        process = new ProcessBuilder().command(command).directory(workingDirectory.toFile()).inheritIO().start();
+        var processBuilder = new ProcessBuilder().command(command).directory(workingDirectory.toFile());
+        if (org.javacs.Main.showMiscLogging) {
+            processBuilder = processBuilder.inheritIO();
+        }
+        process = processBuilder.start();
+        // waits in tests aren't great, they waste time and can flake
         java.lang.Thread.sleep(1000);
     }
 
@@ -107,9 +112,11 @@ public class JavaDebugServerTest {
                 var requestTrace = new StackTraceArguments();
                 requestTrace.threadId = t.id;
                 var stack = server.stackTrace(requestTrace);
-                System.out.println("Thread main:");
-                for (var frame : stack.stackFrames) {
-                    System.out.println(String.format("\t%s:%d (%s)", frame.name, frame.line, frame.source.path));
+                if (org.javacs.Main.showMiscLogging) {
+                    System.out.println("Thread main:");
+                    for (var frame : stack.stackFrames) {
+                        System.out.println(String.format("\t%s:%d (%s)", frame.name, frame.line, frame.source.path));
+                    }
                 }
                 // Get variables
                 var requestScopes = new ScopesArguments();
@@ -119,17 +126,21 @@ public class JavaDebugServerTest {
                 var requestLocals = new VariablesArguments();
                 requestLocals.variablesReference = scopes[0].variablesReference;
                 var locals = server.variables(requestLocals).variables;
-                System.out.println("Locals:");
-                for (var v : locals) {
-                    System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                if (org.javacs.Main.showMiscLogging) {
+                    System.out.println("Locals:");
+                    for (var v : locals) {
+                        System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                    }
                 }
                 // Get arguments
                 var requestArgs = new VariablesArguments();
                 requestArgs.variablesReference = scopes[1].variablesReference;
                 var arguments = server.variables(requestArgs).variables;
-                System.out.println("Arguments:");
-                for (var v : arguments) {
-                    System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                if (org.javacs.Main.showMiscLogging) {
+                    System.out.println("Arguments:");
+                    for (var v : arguments) {
+                        System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                    }
                 }
             }
         }
@@ -197,9 +208,11 @@ public class JavaDebugServerTest {
                 var requestTrace = new StackTraceArguments();
                 requestTrace.threadId = t.id;
                 var stack = server.stackTrace(requestTrace);
-                System.out.println("Thread main:");
-                for (var frame : stack.stackFrames) {
-                    System.out.println(String.format("\t%s:%d (%s)", frame.name, frame.line, frame.source.path));
+                if (org.javacs.Main.showMiscLogging) {
+                    System.out.println("Thread main:");
+                    for (var frame : stack.stackFrames) {
+                        System.out.println(String.format("\t%s:%d (%s)", frame.name, frame.line, frame.source.path));
+                    }
                 }
                 // Get variables
                 var requestScopes = new ScopesArguments();
@@ -209,9 +222,11 @@ public class JavaDebugServerTest {
                 var requestLocals = new VariablesArguments();
                 requestLocals.variablesReference = scopes[0].variablesReference;
                 var locals = server.variables(requestLocals).variables;
-                System.out.println("Locals:");
-                for (var v : locals) {
-                    System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                if (org.javacs.Main.showMiscLogging) {
+                    System.out.println("Locals:");
+                    for (var v : locals) {
+                        System.out.println(String.format("\t%s %s = %s", v.type, v.name, v.value));
+                    }
                 }
             }
         }
