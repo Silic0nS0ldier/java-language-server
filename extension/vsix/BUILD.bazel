@@ -8,7 +8,7 @@ load("//:build_defs/java_toolchains.bzl", "MS_JDK")
 write_file(
     name = "jre_json",
     out = "jre.json",
-    content = json.encode_indent(MS_JDK, indent = "    "),
+    content = [json.encode_indent(MS_JDK, indent = "    ")],
 )
 
 # Copy bundled sources to src/
