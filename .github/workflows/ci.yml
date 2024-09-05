@@ -33,5 +33,5 @@ jobs:
       - run: bazel build //extension/vsix:java_bazel_language_support --stamp
       - uses: actions/upload-artifact@v4
         with:
-          name: git-monolithic-vsix
+          name: java-bazel-language-support-vsix
           path: .bazel/bin/extension/vsix/java_bazel_language_support.vsix
