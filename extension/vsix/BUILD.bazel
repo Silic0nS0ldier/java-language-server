@@ -1,7 +1,15 @@
 load("@aspect_bazel_lib//lib:copy_directory.bzl", "copy_directory")
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:output_files.bzl", "output_files")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//build_defs/vsce_package:vsce_package.bzl", "vsce_package")
+load("//build_defs:java_toolchains.bzl", "MS_JDK")
+
+write_file(
+    name = "jre_json",
+    out = "jre.json",
+    content = json.encode_indent(MS_JDK, indent = "    "),
+)
 
 # Copy bundled sources to src/
 output_files(
@@ -47,6 +55,7 @@ vsce_package(
         ":copy_license",
         ":copy_language_server_jar",
         ":copy_debug_server_jar",
+        ":jre_json",
     ],
     in_dir = "./",
 )

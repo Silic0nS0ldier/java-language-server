@@ -12,7 +12,7 @@ type JreIndex = Record<string, {
     url: string,
     sha256: string,
     os: string,
-    cpu: string[],
+    cpu: string,
 }>;
 
 export type ResolvedJre = {
@@ -37,7 +37,7 @@ export async function resolveJre(globalStoragePath: string): Promise<ResolvedJre
             if (jre.os !== process.platform) {
                 continue;
             }
-            if (!jre.cpu.some(cpu => cpu === process.arch)) {
+            if (jre.cpu !== process.arch) {
                 continue;
             }
 

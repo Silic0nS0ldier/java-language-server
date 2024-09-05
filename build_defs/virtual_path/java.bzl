@@ -1,5 +1,6 @@
 load(":virtual_path.bzl", "VirtualPathExecutable")
 
+# TODO Source toolchain via attribute, toolchain resolution isn't right here (only works when target and exec platform match)
 def _impl(ctx):
     # type: (ctx) -> unknown
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime

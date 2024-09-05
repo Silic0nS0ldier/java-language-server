@@ -1,5 +1,4 @@
 load("@rules_rust//rust:defs.bzl", "rust_binary")
-load(":java.bzl", "java_bin")
 
 rust_binary(
     name = "wrap",
@@ -10,6 +9,3 @@ rust_binary(
     ],
 )
 
-java_bin(
-    name = "java",
-)

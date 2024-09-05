@@ -29,7 +29,7 @@ java_library(
 )
 
 java_test(
-    name = "test",
+    name = "test_impl",
     test_class = "org.javacs.AllTests",
     runtime_deps = [":test_lib"],
     data = ["//examples:example_srcs"],
@@ -39,14 +39,14 @@ java_bin(
     name = "java",
 )
 
-# Depends on java
+# Depends on java from PATh
 maven_bin(
     name = "maven",
 )
 
 with_virtual_path_test(
-    name = "test2",
-    test = ":test",
+    name = "test",
+    test = ":test_impl",
     executables = [
         ":java",
         ":maven",
