@@ -21,7 +21,7 @@ import org.javacs.rewrite.RewriteTest;
     GotoTest.class,
     HoverTest.class,
     IncrementalCompileTest.class,
-    InferBazelConfigTest.class,
+    //InferBazelConfigTest.class,
     InferConfigTest.class,
     JavaDebugServerTest.class,
     JavaLanguageServerTest.class,

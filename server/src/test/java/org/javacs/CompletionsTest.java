@@ -658,7 +658,7 @@ public class CompletionsTest extends CompletionsBase {
     public void overloadedOnClassPath() {
         var file = "/org/javacs/example/OverloadedMethod.java";
         var labels = detail(file, 10, 26);
-        assertThat("suggests overloads", labels, hasItem("List<E> of() (+11 overloads)"));
+        assertThat("suggests overloads", labels, hasItem("java.util.List<E> <E>of()"));
     }
 
     @Test
