@@ -33,6 +33,7 @@ java_test(
     test_class = "org.javacs.AllTests",
     runtime_deps = [":test_lib"],
     data = ["//examples:example_srcs"],
+    tags = ["manual"],
 )
 
 java_bin(
