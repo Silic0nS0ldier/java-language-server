@@ -1,20 +1,7 @@
-/out
-/node_modules
-/target
-/dist/classpath
-/dist/linux
-/dist/mac
-/dist/windows
-/jdks
+.bazel/
 
-/dependency-reduced-pom.xml
-/classpath.txt
-/test-classpath.txt
-/docpath.txt
+.pnpm-store/
+node_modules/
 
-*.log
-*.log.*
-.idea
-*.iml
-*.vsix
-.DS_store
+rust-project.json
+target

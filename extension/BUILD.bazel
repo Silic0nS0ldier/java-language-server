@@ -1,0 +1,46 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("//build_defs/rollup_bundle:rollup_bundle.bzl", "rollup_bundle")
+
+npm_link_all_packages(name = "node_modules")
+
+ts_project(
+    name = "lib",
+    srcs = glob(["src/**/*.ts"]) + ["package.json"],
+    out_dir = "dist",
+    root_dir = "src",
+    deps = [
+        "//:node_modules/@types/node",
+        ":node_modules/@types/vscode",
+        ":node_modules/vscode-languageclient",
+        ":node_modules/@types/adm-zip",
+        ":node_modules/adm-zip",
+        ":node_modules/jsonc-parser",
+        ":node_modules/make-fetch-happen",
+        ":node_modules/ssri",
+        ":node_modules/tar",
+        ":node_modules/@types/make-fetch-happen",
+        ":node_modules/@types/ssri",
+    ],
+    tsconfig = ":tsconfig",
+    declaration = True,
+)
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    deps = ["//:tsconfig"],
+    visibility = [":__pkg__"],
+)
+
+rollup_bundle(
+    name = "bundle",
+    srcs = [":lib"],
+    entry_points = [
+        "dist/main.js",
+    ],
+    external_modules = [
+        "vscode",
+    ],
+    visibility = ["//extension/vsix:__pkg__"],
+)

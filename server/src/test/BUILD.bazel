@@ -1,0 +1,62 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
+load("//build_defs/virtual_path:virtual_path.bzl", "with_virtual_path_test")
+load("//build_defs/virtual_path:java.bzl", "java_bin")
+load("//build_defs/virtual_path:maven.bzl", "maven_bin")
+
+java_library(
+    name = "test_lib",
+    srcs = glob(["java/**/*.java"]),
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:org_hamcrest_hamcrest",
+        "@maven//:junit_junit",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+        "//server/src/main:lib",
+    ],
+    add_exports = [
+        "jdk.compiler/com.sun.tools.javac.api",
+        "jdk.compiler/com.sun.tools.javac.code",
+        "jdk.compiler/com.sun.tools.javac.comp",
+        "jdk.compiler/com.sun.tools.javac.main",
+        "jdk.compiler/com.sun.tools.javac.tree",
+        "jdk.compiler/com.sun.tools.javac.model",
+        "jdk.compiler/com.sun.tools.javac.util",
+    ],
+    add_opens = [
+        "jdk.compiler/com.sun.tools.javac.api",
+    ],
+)
+
+java_test(
+    name = "test_impl",
+    test_class = "org.javacs.AllTests",
+    runtime_deps = [":test_lib"],
+    data = ["//examples:example_srcs"],
+    tags = ["manual"],
+)
+
+java_bin(
+    name = "java",
+)
+
+# Depends on java from PATh
+maven_bin(
+    name = "maven",
+)
+
+with_virtual_path_test(
+    name = "test",
+    test = ":test_impl",
+    executables = [
+        ":java",
+        ":maven",
+    ],
+    tags = [
+        # For maven dependency resolution, and maybe bazel
+        "requires-network",
+        # mvn needs to write to HOME/.m2 (for dependencies)
+        # TODO Figure out a hermetic solution
+        "no-sandbox",
+    ],
+)

@@ -1,0 +1,6 @@
+
+filegroup(
+    name = "example_srcs",
+    srcs = glob(["**"], exclude = ["BUILD.bazel"]),
+    visibility = ["//server/src/test:__pkg__"]
+)

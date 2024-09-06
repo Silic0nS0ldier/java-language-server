@@ -1,0 +1,11 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+rust_binary(
+    name = "wrap",
+    srcs = glob(["wrap/**/*.rs"]),
+    deps = [
+        "@crates//:serde",
+        "@crates//:serde_json",
+    ],
+)
+
