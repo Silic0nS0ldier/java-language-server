@@ -17,7 +17,7 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
         "com.google.code.gson:gson:2.11.0",
-        "com.google.protobuf:protobuf-java:3.25.3",
+        "com.google.protobuf:protobuf-java:4.28.0",
         # Test dependencies
         # TODO Update to JUnit 5
         "junit:junit:4.13.2",
@@ -27,6 +27,7 @@ maven.install(
         "org.openjdk.jmh:jmh-generator-annprocess:1.37",
     ],
     lock_file = "//:maven_install.json",
+    version_conflict_policy = "pinned",
 )
 use_repo(maven, "maven")
 
@@ -101,7 +102,7 @@ use_repo(crate, "crates")
 protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
 protoc.toolchain(
     google_protobuf = "com_google_protobuf",
-    version = "v27.1",
+    version = "v28.0",
 )
 use_repo(protoc, "toolchains_protoc_hub")
 register_toolchains(
@@ -114,8 +115,8 @@ register_toolchains(
 http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 http_jar(
     name = "protobuf-java",
-    sha256 = "798c79f6c9fc6859cc76aa5474228aad250821438e1004dad34880d53aa745f9",
-    urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.27.1/protobuf-java-4.27.1.jar"],
+    sha256 = "ad2388477b3b96994241e64731a136894dc9fed6deb9f276d484a8b171b1450c",
+    urls = ["https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.28.0/protobuf-java-4.28.0.jar"],
 )
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
