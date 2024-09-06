@@ -7,7 +7,7 @@
     "publisher": "siliconsoldier",
     "repository": {
         "type": "git",
-        "url": "https://github.com/siliconsoldier/java-language-server"
+        "url": "https://github.com/Silic0nS0ldier/java-language-server"
     },
     "license": "MIT",
     "engines": {
