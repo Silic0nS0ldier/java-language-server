@@ -29,6 +29,11 @@ jobs:
           path: |
             .bazel/testlogs/**/test.log
             .bazel/testlogs/**/test.xml
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: .bazel/testlogs/**/test.xml
   build:
     runs-on: ubuntu-latest
     steps:
