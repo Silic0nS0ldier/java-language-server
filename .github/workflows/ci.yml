@@ -21,6 +21,14 @@ jobs:
           disk-cache: "${{ github.workflow }}-test"
           repository-cache: true
       - run: bazel test //...
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            .bazel/testlogs/**/test.log
+            .bazel/testlogs/**/test.xml
   build:
     runs-on: ubuntu-latest
     steps:
