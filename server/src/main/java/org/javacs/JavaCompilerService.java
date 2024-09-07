@@ -75,6 +75,7 @@ class JavaCompilerService implements CompilerProvider {
 
     private CompileBatch doCompile(Collection<? extends JavaFileObject> sources) {
         if (sources.isEmpty()) throw new RuntimeException("empty sources");
+
         var firstAttempt = new CompileBatch(this, sources);
         var addFiles = firstAttempt.needsAdditionalSources();
         if (addFiles.isEmpty()) return firstAttempt;
@@ -82,6 +83,7 @@ class JavaCompilerService implements CompilerProvider {
         LOG.info("...need to recompile with " + addFiles);
         firstAttempt.close();
         firstAttempt.borrow.close();
+
         var moreSources = new ArrayList<JavaFileObject>();
         moreSources.addAll(sources);
         for (var add : addFiles) {
