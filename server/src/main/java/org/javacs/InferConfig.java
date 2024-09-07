@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import org.javacs.util.ChildProcess;
 
 class InferConfig {
