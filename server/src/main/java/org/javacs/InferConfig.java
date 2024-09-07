@@ -1,6 +1,8 @@
 package org.javacs;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import java.io.File;
@@ -15,6 +17,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.javacs.util.ChildProcess;
 
 class InferConfig {
@@ -257,268 +260,253 @@ class InferConfig {
         return null;
     }
 
-    static class TargetWithFiles {
+    private static class TargetWithFiles {
         String target;
         String[] files;
+
+        @Nullable
+        static TargetWithFiles fromReader(Gson gson, JsonReader reader) {
+            try {
+                return gson.fromJson(reader, TargetWithFiles.class);
+            } catch (JsonIOException|JsonSyntaxException e) {
+                LOG.warning("JSON parse error: " + e.toString());
+                return null;
+            }
+        }
+    }
+
+    private static boolean jsonStreamCanContinue(JsonReader reader) {
+        try {
+            return reader.peek() != JsonToken.END_DOCUMENT;
+        } catch (IOException e) {
+            LOG.warning("JsonReader error: " + e.toString());
+            return false;
+        }
+    }
+
+    private static HashSet<Path> bazelProcessResult(File stdout, Path outputBase, Path outputPath)
+        throws FileNotFoundException
+    {
+        var absolute = new HashSet<Path>();
+        var targets = new HashSet<String>();
+
+        Gson gson = new Gson();
+        JsonReader reader = new JsonReader(new FileReader(stdout));
+        // Lenient allows continuation after JSON item ends (for NDJSON parsing)
+        reader.setLenient(true);
+        
+        while (jsonStreamCanContinue(reader)) {
+            var targetWithFiles = TargetWithFiles.fromReader(gson, reader);
+            if (targetWithFiles == null) {
+                // Try the next result
+                continue;
+            }
+
+            if (targetWithFiles.files.length > 0) {
+                for (var file : targetWithFiles.files) {
+                    // May exist in 2 locations
+                    // TODO Are paths being retrieved from starlark wrong to cause this?
+                    var resolvedOutputBase = outputBase.resolve(file);
+                    var resolvedOutputPath = outputPath.resolve(file.replaceFirst("bazel-out/", ""));
+                    if (resolvedOutputBase.toFile().exists()) {
+                        LOG.info("found jar: " + resolvedOutputBase.toString());
+                        absolute.add(resolvedOutputBase);
+                    } else if (resolvedOutputPath.toFile().exists()) {
+                        LOG.info("found jar: " + resolvedOutputPath.toString());
+                        absolute.add(resolvedOutputPath);
+                    } else {
+                        LOG.warning("found jar, but does not exist at (1) "
+                            + resolvedOutputBase.toString()
+                            + " nor (2) "
+                            + resolvedOutputPath.toString());
+                        if (targets.add(targetWithFiles.target)) {
+                            LOG.info("jar may be made available by building: " + targetWithFiles.target);
+                        }
+                    }
+                }
+            }
+        }
+
+        return absolute;
+    }
+
+    @Nullable
+    private static Path BazelOutputBase;
+    private static Path getBazelOutputBase(Path bazelWorkspaceRoot) {
+        if (BazelOutputBase != null) {
+            return BazelOutputBase;
+        }
+
+        try {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "info",
+                "output_base"
+            })) {
+                if (result.getExitCode() != 0) {
+                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
+                }
+                BazelOutputBase = Path.of(Files.readString(result.getStdout()).trim());
+                return BazelOutputBase;
+            }
+        } catch (Exception e) {
+            // oh no
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Nullable
+    private static Path BazelOutputPath;
+    private static Path getBazelOutputPath(Path bazelWorkspaceRoot) {
+        if (BazelOutputPath != null) {
+            return BazelOutputPath;
+        }
+
+        try {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "info",
+                "output_path"
+            })) {
+                if (result.getExitCode() != 0) {
+                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
+                }
+                BazelOutputPath = Path.of(Files.readString(result.getStdout()).trim());
+                return BazelOutputPath;
+            }
+        } catch (Exception e) {
+            // oh no
+            throw new RuntimeException(e);
+        }
     }
 
     private Set<Path> bazelClasspath(Path bazelWorkspaceRoot) {
-        Path outputBase;
-        try {
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "info",
-                "output_base"
-            })) {
-                if (result.getExitCode() != 0) {
-                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
-                }
-                outputBase = Path.of(Files.readString(result.getStdout()).trim());
-            }
-        } catch (Exception e) {
-            // oh no
-            throw new RuntimeException(e);
-        }
-        Path outputPath;
-        try {
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "info",
-                "output_path"
-            })) {
-                if (result.getExitCode() != 0) {
-                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
-                }
-                outputPath = Path.of(Files.readString(result.getStdout()).trim());
-            }
-        } catch (Exception e) {
-            // oh no
-            throw new RuntimeException(e);
-        }
+        Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
+        Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        var absolute = new HashSet<Path>();
-        var targets = new HashSet<String>();
-
-        try {
-            // TODO Handle invalid output
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "cquery",
-                "--keep_going",
-                "--allow_analysis_failures",
-                // required for java_proto_library, see
-                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
-                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
-                "--include_aspects",
-                // TODO This will result in duplicate .jar when used with rules_jvm_external
-                //      Instead first query for all java_(library|binary|test) including any of the same kind
-                //      they depend on, then resolve the direct dependencies of that combined set
-                //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
-                //      but it will eliminate the vast majority. Especially when single version policies are in place.
-                // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
-                // Collect all dependencies
+        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+            "bazel",
+            "cquery",
+            "--keep_going",
+            "--allow_analysis_failures",
+            // required for java_proto_library, see
+            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+            "--include_aspects",
+            // TODO This will result in duplicate .jar when used with rules_jvm_external
+            //      Instead first query for all java_(library|binary|test) including any of the same kind
+            //      they depend on, then resolve the direct dependencies of that combined set
+            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+            //      but it will eliminate the vast majority. Especially when single version policies are in place.
+            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+            // Collect all dependencies
+            """
+            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                """ +
+                // And then filter out...
                 """
-                let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                $full_deps except (
                     """ +
-                    // And then filter out...
+                    // java_* rules, they are handled separately
                     """
-                    $full_deps except (
+                    kind("java_(library|binary|test)", $full_deps)
                         """ +
-                        // java_* rules, they are handled separately
+                        // and files that are not .jar
+                        // for generated files they are typically from predeclared outputs, their owning target should also show up
                         """
-                        kind("java_(library|binary|test)", $full_deps)
-                            """ +
-                            // and files that are not .jar
-                            // for generated files they are typically from predeclared outputs, their owning target should also show up
-                            """
-                            union (
-                                kind("(source|generated) file", $full_deps)
-                                except filter("\\.jar$", $full_deps)
-                            )
-                            """ +
-                            // and .srcjar (source and generated) with patterns;
-                            // - `\.srcjar$` e.g. https://github.com/protocolbuffers/protobuf/pull/7190/files#diff-43f66dfc9e2ac9abf2b2cc408ddb4efa3bda9472e25997ed2ee4d4f8d5f8032dR326
-                            // - `-src\.jar$` e.g. java_proto_library
-                            // - `-sources\.jar$` e.g. rules_jvm_external with `fetch_sources = True`, maven
-                            """
-                            union (
-                                kind("(source|generated) file", $full_deps)
-                                except filter("(\\.src|-(src|sources)\\.)jar$", $full_deps)
-                            )
+                        union (
+                            kind("(source|generated) file", $full_deps)
+                            except filter("\\.jar$", $full_deps)
+                        )
+                        """ +
+                        // and .srcjar (source and generated) with patterns;
+                        // - `\.srcjar$` e.g. https://github.com/protocolbuffers/protobuf/pull/7190/files#diff-43f66dfc9e2ac9abf2b2cc408ddb4efa3bda9472e25997ed2ee4d4f8d5f8032dR326
+                        // - `-src\.jar$` e.g. java_proto_library
+                        // - `-sources\.jar$` e.g. rules_jvm_external with `fetch_sources = True`, maven
+                        """
+                        union (
+                            kind("(source|generated) file", $full_deps)
+                            except filter("(\\.src|-(src|sources)\\.)jar$", $full_deps)
                         )
                     )
-                """,
-                "--output=starlark",
-                "--starlark:expr",
-                """
-                json.encode({
-                    "target": str(target.label),
-                    "files": [x.path for x in target.files.to_list() if x.path.endswith(".jar") and not (x.path.endswith("-src.jar") or x.path.endswith("-sources.jar"))],
-                })
-                """,
-            })) {
-                Gson gson = new Gson();
-                JsonReader reader = new JsonReader(new FileReader(result.getStdout().toString()));
-                // Lenient allows continuation after JSON item ends (for NDJSON parsing)
-                reader.setLenient(true);
-                while (reader.peek() != JsonToken.END_DOCUMENT) {
-                    TargetWithFiles targetWithFiles = gson.fromJson(reader, TargetWithFiles.class);
-                    if (targetWithFiles.files.length > 0) {
-                        for (var file : targetWithFiles.files) {
-                            // May exist in 2 locations
-                            // TODO Are paths being retrieved from starlark wrong to cause this?
-                            var resolvedOutputBase = outputBase.resolve(file);
-                            var resolvedOutputPath = outputPath.resolve(file.replaceFirst("bazel-out/", ""));
-                            if (resolvedOutputBase.toFile().exists()) {
-                                LOG.info("found jar: " + resolvedOutputBase.toString());
-                                absolute.add(resolvedOutputBase);
-                            } else if (resolvedOutputPath.toFile().exists()) {
-                                LOG.info("found jar: " + resolvedOutputPath.toString());
-                                absolute.add(resolvedOutputPath);
-                            } else {
-                                LOG.warning("found jar, but does not exist at (1) "
-                                    + resolvedOutputBase.toString()
-                                    + " nor (2) "
-                                    + resolvedOutputPath.toString());
-                                if (targets.add(targetWithFiles.target)) {
-                                    LOG.info("jar may be made available by building: " + targetWithFiles.target);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                )
+            """,
+            "--output=starlark",
+            "--starlark:expr",
+            """
+            json.encode({
+                "target": str(target.label),
+                "files": [x.path for x in target.files.to_list() if x.path.endswith(".jar") and not (x.path.endswith("-src.jar") or x.path.endswith("-sources.jar"))],
+            })
+            """,
+        })) {
+            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
         } catch (Exception e) {
-            LOG.warning(e.toString());
+            LOG.warning("Lookup failed: " + e.toString());
         }
 
         // TODO Build targets which output jars whose outputs are missing
 
-        return absolute;
+        return new HashSet<Path>();
     }
 
     private Set<Path> bazelSourcepath(Path bazelWorkspaceRoot) {
-        Path outputBase;
-        try {
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "info",
-                "output_base"
-            })) {
-                if (result.getExitCode() != 0) {
-                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
-                }
-                outputBase = Path.of(Files.readString(result.getStdout()).trim());
-            }
-        } catch (Exception e) {
-            // oh no
-            throw new RuntimeException(e);
-        }
-        Path outputPath;
-        try {
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "info",
-                "output_path"
-            })) {
-                if (result.getExitCode() != 0) {
-                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
-                }
-                outputPath = Path.of(Files.readString(result.getStdout()).trim());
-            }
-        } catch (Exception e) {
-            // oh no
-            throw new RuntimeException(e);
-        }
+        Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
+        Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        var absolute = new HashSet<Path>();
-        var targets = new HashSet<String>();
-
-        try {
-            // TODO Handle invalid output
-            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-                "bazel",
-                "cquery",
-                "--keep_going",
-                "--allow_analysis_failures",
-                // required for java_proto_library, see
-                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
-                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
-                "--include_aspects",
-                // TODO This will result in duplicate .jar when used with rules_jvm_external
-                //      Instead first query for all java_(library|binary|test) including any of the same kind
-                //      they depend on, then resolve the direct dependencies of that combined set
-                //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
-                //      but it will eliminate the vast majority. Especially when single version policies are in place.
-                // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
-                // Collect all dependencies
+        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+            "bazel",
+            "cquery",
+            "--keep_going",
+            "--allow_analysis_failures",
+            // required for java_proto_library, see
+            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+            "--include_aspects",
+            // TODO This will result in duplicate .jar when used with rules_jvm_external
+            //      Instead first query for all java_(library|binary|test) including any of the same kind
+            //      they depend on, then resolve the direct dependencies of that combined set
+            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+            //      but it will eliminate the vast majority. Especially when single version policies are in place.
+            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+            // Collect all dependencies
+            """
+            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                """ +
+                // And then filter out...
                 """
-                let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                $full_deps except (
                     """ +
-                    // And then filter out...
+                    // java_* rules, they are handled separately
                     """
-                    $full_deps except (
+                    kind("java_(library|binary|test)", $full_deps)
                         """ +
-                        // java_* rules, they are handled separately
+                        // and source files that are not .jar or .srcjar
                         """
-                        kind("java_(library|binary|test)", $full_deps)
-                            """ +
-                            // and source files that are not .jar or .srcjar
-                            """
-                            union (
-                                kind("source file", $full_deps)
-                                except filter("\\.(src|)jar$", $full_deps)
-                            )
+                        union (
+                            kind("source file", $full_deps)
+                            except filter("\\.(src|)jar$", $full_deps)
                         )
                     )
-                """,
-                "--output=starlark",
-                "--starlark:expr",
-                """
-                json.encode({
-                    "target": str(target.label),
-                    "files": [x.path for x in target.files.to_list() if x.path.endswith(".srcjar") or x.path.endswith("-src.jar") or x.path.endswith("-sources.jar")],
-                })
-                """,
-            })) {
-                Gson gson = new Gson();
-                JsonReader reader = new JsonReader(new FileReader(result.getStdout().toString()));
-                // Lenient allows continuation after JSON item ends (for NDJSON parsing)
-                reader.setLenient(true);
-                while (reader.peek() != JsonToken.END_DOCUMENT) {
-                    TargetWithFiles targetWithFiles = gson.fromJson(reader, TargetWithFiles.class);
-                    if (targetWithFiles.files.length > 0) {
-                        for (var file : targetWithFiles.files) {
-                            // May exist in 2 locations
-                            // TODO Are paths being retrieved from starlark wrong to cause this?
-                            var resolvedOutputBase = outputBase.resolve(file);
-                            var resolvedOutputPath = outputPath.resolve(file.replaceFirst("bazel-out/", ""));
-                            if (resolvedOutputBase.toFile().exists()) {
-                                LOG.info("found jar: " + resolvedOutputBase.toString());
-                                absolute.add(resolvedOutputBase);
-                            } else if (resolvedOutputPath.toFile().exists()) {
-                                LOG.info("found jar: " + resolvedOutputPath.toString());
-                                absolute.add(resolvedOutputPath);
-                            } else {
-                                LOG.warning("found jar, but does not exist at (1) "
-                                    + resolvedOutputBase.toString()
-                                    + " nor (2) "
-                                    + resolvedOutputPath.toString());
-                                if (targets.add(targetWithFiles.target)) {
-                                    LOG.info("jar may be made available by building: " + targetWithFiles.target);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                )
+            """,
+            "--output=starlark",
+            "--starlark:expr",
+            """
+            json.encode({
+                "target": str(target.label),
+                "files": [x.path for x in target.files.to_list() if x.path.endswith(".srcjar") or x.path.endswith("-src.jar") or x.path.endswith("-sources.jar")],
+            })
+            """,
+        })) {
+            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
         } catch (Exception e) {
-            LOG.warning(e.toString());
+            LOG.warning("Lookup failed: " + e.toString());
         }
 
         // TODO Build targets which output jars whose outputs are missing
 
-        return absolute;
+        return new HashSet<Path>();
     }
 
     private static final Path NOT_FOUND = Paths.get("");
