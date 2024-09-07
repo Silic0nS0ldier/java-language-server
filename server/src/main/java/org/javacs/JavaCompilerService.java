@@ -76,13 +76,13 @@ class JavaCompilerService implements CompilerProvider {
     private CompileBatch doCompile(Collection<? extends JavaFileObject> sources) {
         if (sources.isEmpty()) throw new RuntimeException("empty sources");
 
-        Set<Path> addFiles;
-        try (var firstAttempt = new CompileBatch(this, sources)) {
-            addFiles = firstAttempt.needsAdditionalSources();
-            if (addFiles.isEmpty()) return firstAttempt;
-            // If the compiler needs additional source files that contain package-private files
-            LOG.info("...need to recompile with " + addFiles);
-        }
+        var firstAttempt = new CompileBatch(this, sources);
+        var addFiles = firstAttempt.needsAdditionalSources();
+        if (addFiles.isEmpty()) return firstAttempt;
+        // If the compiler needs additional source files that contain package-private files
+        LOG.info("...need to recompile with " + addFiles);
+        firstAttempt.close();
+        firstAttempt.borrow.close();
 
         var moreSources = new ArrayList<JavaFileObject>();
         moreSources.addAll(sources);

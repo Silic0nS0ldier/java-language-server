@@ -96,7 +96,6 @@ class CompileBatch implements AutoCloseable {
 
     @Override
     public void close() {
-        borrow.close();
         closed = true;
     }
 
