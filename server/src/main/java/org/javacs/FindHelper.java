@@ -13,6 +13,7 @@ import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import java.io.IOException;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -22,6 +23,7 @@ import org.javacs.lsp.Position;
 import org.javacs.lsp.Range;
 
 public class FindHelper {
+    private static final Logger LOG = Logger.getLogger("main");
 
     public static String[] erasedParameterTypes(CompileTask task, ExecutableElement method) {
         var types = task.task.getTypes();
@@ -134,14 +136,31 @@ public class FindHelper {
     }
 
     public static Location location(CompileTask task, TreePath path, CharSequence name) {
-        var lines = path.getCompilationUnit().getLineMap();
+        var compilationUnit = path.getCompilationUnit();
+        var lines = compilationUnit.getLineMap();
         var pos = Trees.instance(task.task).getSourcePositions();
-        var start = (int) pos.getStartPosition(path.getCompilationUnit(), path.getLeaf());
-        var end = (int) pos.getEndPosition(path.getCompilationUnit(), path.getLeaf());
+        var start = (int) pos.getStartPosition(compilationUnit, path.getLeaf());
+        var end = (int) pos.getEndPosition(compilationUnit, path.getLeaf());
+
         if (name.length() > 0) {
-            start = FindHelper.findNameIn(path.getCompilationUnit(), name, start, end);
-            end = start + name.length();
+            var nameStart = FindHelper.findNameIn(compilationUnit, name, start, end);
+            if (nameStart == -1) {
+                LOG.warning("Could not find name `" + name + "` in " + compilationUnit.getSourceFile().getName());
+            } else {
+                start = nameStart;
+                end = start + name.length();
+            }
         }
+
+        if (start == -1) {
+            LOG.warning("Got -1 for start position in " + compilationUnit.getSourceFile().getName());
+            start = 0;
+        }
+        if (end == -1 || start > end) {
+            LOG.warning("End position " + end + " smaller than start position " + start + " in " + compilationUnit.getSourceFile().getName());
+            end = start;
+        }
+
         var startLine = (int) lines.getLineNumber(start);
         var startColumn = (int) lines.getColumnNumber(start);
         var startPos = new Position(startLine - 1, startColumn - 1);
@@ -149,7 +168,7 @@ public class FindHelper {
         var endColumn = (int) lines.getColumnNumber(end);
         var endPos = new Position(endLine - 1, endColumn - 1);
         var range = new Range(startPos, endPos);
-        var uri = path.getCompilationUnit().getSourceFile().toUri();
+        var uri = compilationUnit.getSourceFile().toUri();
         return new Location(uri, range);
     }
 
