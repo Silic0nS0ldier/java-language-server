@@ -1,6 +1,5 @@
-load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_java//java:java_single_jar.bzl", "java_single_jar")
-load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # Output of interest is main_deploy.jar
 
@@ -23,8 +22,7 @@ java_library(
     srcs = glob(["java/**/*.java"]),
     deps = [
         "@maven//:com_google_code_gson_gson",
-        "@maven//:com_google_protobuf_protobuf_java",
-        ":analysis_java_proto",
+        "@maven//:jakarta_annotation_jakarta_annotation_api",
     ],
     add_exports = add_exports,
     add_opens = add_opens,
@@ -54,32 +52,4 @@ java_single_jar(
     ] + ["Add-Exports: " + package for package in add_exports]
     + ["Add-Opens: " + package for package in add_opens],
     visibility =  ["//extension/vsix:__pkg__"],
-)
-
-proto_library(
-    name = "build_proto",
-    srcs = [
-        "protobuf/build.proto",
-    ],
-)
-
-proto_library(
-    name = "analysis_v2_proto",
-    srcs = ["protobuf/analysis_v2.proto"],
-    deps = [":build_proto"],
-)
-
-# TODO Remove, versions of Bazel this old aren't worth the hassle of supporting
-proto_library(
-    name = "analysis_v1_proto",
-    srcs = ["protobuf/analysis.proto"],
-    deps = [":build_proto"],
-)
-
-java_proto_library(
-    name = "analysis_java_proto",
-    deps = [
-        ":analysis_v1_proto",
-        ":analysis_v2_proto",
-    ],
 )

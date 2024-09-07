@@ -8,7 +8,7 @@ This extension is focused on supporting Java alongside Bazel. At present;
 - Gracefully handles Bazel analysis failures where possible.
 - Supports bzlmod, Bazel's new external dependency management system.
 
-This has been tested against Java code in the [Bazel repository](https://github.com/bazelbuild/bazel). _Most_ imports correctly resolve.
+This has been tested against Java code in the [Bazel repository](https://github.com/bazelbuild/bazel), all imports correctly resolve.
 
 **Resolved Import**
 ![Resolved Import](images/vscode-bazel-repo-resolved-import.png)

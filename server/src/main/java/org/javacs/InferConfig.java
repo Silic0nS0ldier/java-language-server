@@ -1,9 +1,13 @@
 package org.javacs;
 
-import com.google.devtools.build.lib.analysis.AnalysisProtos;
-import com.google.devtools.build.lib.analysis.AnalysisProtosV2;
-import com.google.devtools.build.lib.analysis.AnalysisProtosV2.PathFragment;
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -13,6 +17,8 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import jakarta.annotation.Nullable;
+import org.javacs.util.ChildProcess;
 
 class InferConfig {
     private static final Logger LOG = Logger.getLogger("main");
@@ -254,254 +260,253 @@ class InferConfig {
         return null;
     }
 
-    private boolean buildProtos(Path bazelWorkspaceRoot) {
-        var targets = bazelQuery(bazelWorkspaceRoot, "java_proto_library");
-        if (targets.size() == 0) {
+    private static class TargetWithFiles {
+        String target;
+        String[] files;
+
+        @Nullable
+        static TargetWithFiles fromReader(Gson gson, JsonReader reader) {
+            try {
+                return gson.fromJson(reader, TargetWithFiles.class);
+            } catch (JsonIOException|JsonSyntaxException e) {
+                LOG.warning("JSON parse error: " + e.toString());
+                return null;
+            }
+        }
+    }
+
+    private static boolean jsonStreamCanContinue(JsonReader reader) {
+        try {
+            return reader.peek() != JsonToken.END_DOCUMENT;
+        } catch (IOException e) {
+            LOG.warning("JsonReader error: " + e.toString());
             return false;
         }
-        bazelDryRunBuild(bazelWorkspaceRoot, targets);
-        return true;
+    }
+
+    private static HashSet<Path> bazelProcessResult(File stdout, Path outputBase, Path outputPath)
+        throws FileNotFoundException
+    {
+        var absolute = new HashSet<Path>();
+        var targets = new HashSet<String>();
+
+        Gson gson = new Gson();
+        JsonReader reader = new JsonReader(new FileReader(stdout));
+        // Lenient allows continuation after JSON item ends (for NDJSON parsing)
+        reader.setLenient(true);
+        
+        while (jsonStreamCanContinue(reader)) {
+            var targetWithFiles = TargetWithFiles.fromReader(gson, reader);
+            if (targetWithFiles == null) {
+                // Try the next result
+                continue;
+            }
+
+            if (targetWithFiles.files.length > 0) {
+                for (var file : targetWithFiles.files) {
+                    // May exist in 2 locations
+                    // TODO Are paths being retrieved from starlark wrong to cause this?
+                    var resolvedOutputBase = outputBase.resolve(file);
+                    var resolvedOutputPath = outputPath.resolve(file.replaceFirst("bazel-out/", ""));
+                    if (resolvedOutputBase.toFile().exists()) {
+                        LOG.info("found jar: " + resolvedOutputBase.toString());
+                        absolute.add(resolvedOutputBase);
+                    } else if (resolvedOutputPath.toFile().exists()) {
+                        LOG.info("found jar: " + resolvedOutputPath.toString());
+                        absolute.add(resolvedOutputPath);
+                    } else {
+                        LOG.warning("found jar, but does not exist at (1) "
+                            + resolvedOutputBase.toString()
+                            + " nor (2) "
+                            + resolvedOutputPath.toString());
+                        if (targets.add(targetWithFiles.target)) {
+                            LOG.info("jar may be made available by building: " + targetWithFiles.target);
+                        }
+                    }
+                }
+            }
+        }
+
+        return absolute;
+    }
+
+    @Nullable
+    private static Path BazelOutputBase;
+    private static Path getBazelOutputBase(Path bazelWorkspaceRoot) {
+        if (BazelOutputBase != null) {
+            return BazelOutputBase;
+        }
+
+        try {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "info",
+                "output_base"
+            })) {
+                if (result.getExitCode() != 0) {
+                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
+                }
+                BazelOutputBase = Path.of(Files.readString(result.getStdout()).trim());
+                return BazelOutputBase;
+            }
+        } catch (Exception e) {
+            // oh no
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Nullable
+    private static Path BazelOutputPath;
+    private static Path getBazelOutputPath(Path bazelWorkspaceRoot) {
+        if (BazelOutputPath != null) {
+            return BazelOutputPath;
+        }
+
+        try {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "info",
+                "output_path"
+            })) {
+                if (result.getExitCode() != 0) {
+                    throw new RuntimeException("Could not get output base due to exit code " + result.getExitCode());
+                }
+                BazelOutputPath = Path.of(Files.readString(result.getStdout()).trim());
+                return BazelOutputPath;
+            }
+        } catch (Exception e) {
+            // oh no
+            throw new RuntimeException(e);
+        }
     }
 
     private Set<Path> bazelClasspath(Path bazelWorkspaceRoot) {
-        var absolute = new HashSet<Path>();
+        Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
+        Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        // Add protos
-        if (buildProtos(bazelWorkspaceRoot)) {
-            for (var relative : bazelAQuery(bazelWorkspaceRoot, "Javac", "--output", "proto_library")) {
-                absolute.add(bazelWorkspaceRoot.resolve(relative));
-            }
+        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+            "bazel",
+            "cquery",
+            "--keep_going",
+            "--allow_analysis_failures",
+            // required for java_proto_library, see
+            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+            "--include_aspects",
+            // TODO This will result in duplicate .jar when used with rules_jvm_external
+            //      Instead first query for all java_(library|binary|test) including any of the same kind
+            //      they depend on, then resolve the direct dependencies of that combined set
+            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+            //      but it will eliminate the vast majority. Especially when single version policies are in place.
+            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+            // Collect all dependencies
+            """
+            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                """ +
+                // And then filter out...
+                """
+                $full_deps except (
+                    """ +
+                    // java_* rules, they are handled separately
+                    """
+                    kind("java_(library|binary|test)", $full_deps)
+                        """ +
+                        // and files that are not .jar
+                        // for generated files they are typically from predeclared outputs, their owning target should also show up
+                        """
+                        union (
+                            kind("(source|generated) file", $full_deps)
+                            except filter("\\.jar$", $full_deps)
+                        )
+                        """ +
+                        // and .srcjar (source and generated) with patterns;
+                        // - `\.srcjar$` e.g. https://github.com/protocolbuffers/protobuf/pull/7190/files#diff-43f66dfc9e2ac9abf2b2cc408ddb4efa3bda9472e25997ed2ee4d4f8d5f8032dR326
+                        // - `-src\.jar$` e.g. java_proto_library
+                        // - `-sources\.jar$` e.g. rules_jvm_external with `fetch_sources = True`, maven
+                        """
+                        union (
+                            kind("(source|generated) file", $full_deps)
+                            except filter("(\\.src|-(src|sources)\\.)jar$", $full_deps)
+                        )
+                    )
+                )
+            """,
+            "--output=starlark",
+            "--starlark:expr",
+            """
+            json.encode({
+                "target": str(target.label),
+                "files": [x.path for x in target.files.to_list() if x.path.endswith(".jar") and not (x.path.endswith("-src.jar") or x.path.endswith("-sources.jar"))],
+            })
+            """,
+        })) {
+            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
+        } catch (Exception e) {
+            LOG.warning("Lookup failed: " + e.toString());
         }
 
-        // Add rest of classpath
-        for (var relative :
-                bazelAQuery(bazelWorkspaceRoot, "Javac", "--classpath", "java_library", "java_test", "java_binary")) {
-            absolute.add(bazelWorkspaceRoot.resolve(relative));
-        }
-        return absolute;
+        // TODO Build targets which output jars whose outputs are missing
+
+        return new HashSet<Path>();
     }
 
     private Set<Path> bazelSourcepath(Path bazelWorkspaceRoot) {
-        var absolute = new HashSet<Path>();
-        var outputBase = bazelOutputBase(bazelWorkspaceRoot);
-        for (var relative :
-                bazelAQuery(
-                        bazelWorkspaceRoot, "JavaSourceJar", "--sources", "java_library", "java_test", "java_binary")) {
-            absolute.add(outputBase.resolve(relative));
-        }
+        Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
+        Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        // Add proto source files
-        if (buildProtos(bazelWorkspaceRoot)) {
-            for (var relative : bazelAQuery(bazelWorkspaceRoot, "Javac", "--source_jars", "proto_library")) {
-                absolute.add(bazelWorkspaceRoot.resolve(relative));
-            }
-        }
-
-        return absolute;
-    }
-
-    private Path bazelOutputBase(Path bazelWorkspaceRoot) {
-        // Run bazel as a subprocess
-        String[] command = {
-            "bazel", "info", "output_base",
-        };
-        var output = fork(bazelWorkspaceRoot, command, false);
-        if (output == NOT_FOUND) {
-            return NOT_FOUND;
-        }
-        // Read output
-        try {
-            var out = Files.readString(output).trim();
-            return Paths.get(out);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void bazelDryRunBuild(Path bazelWorkspaceRoot, Set<String> targets) {
-        var command = new ArrayList<String>();
-        command.add("bazel");
-        command.add("build");
-        command.add("--keep_going");
-        command.add("--nobuild");
-        command.addAll(targets);
-        String[] c = new String[command.size()];
-        c = command.toArray(c);
-        var output = fork(bazelWorkspaceRoot, c, true);
-        if (output == NOT_FOUND) {
-            return;
-        }
-        return;
-    }
-
-    private Set<String> bazelQuery(Path bazelWorkspaceRoot, String filterKind) {
-        String[] command = {"bazel", "query", "--keep_going", "kind(" + filterKind + ",//...)"};
-        var output = fork(bazelWorkspaceRoot, command, true);
-        if (output == NOT_FOUND) {
-            return Set.of();
-        }
-        return readQueryResult(output);
-    }
-
-    private Set<String> readQueryResult(Path output) {
-        try {
-            Stream<String> stream = Files.lines(output);
-            var targets = new HashSet<String>();
-            var i = stream.iterator();
-            while (i.hasNext()) {
-                var t = i.next();
-                targets.add(t);
-            }
-            return targets;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Set<String> bazelAQuery(
-            Path bazelWorkspaceRoot, String filterMnemonic, String filterArgument, String... kinds) {
-        String kindUnion = "";
-        for (var kind : kinds) {
-            if (kindUnion.length() > 0) {
-                kindUnion += " union ";
-            }
-            kindUnion += "kind(" + kind + ", ...)";
-        }
-        String[] command = {
+        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
             "bazel",
-            "aquery",
+            "cquery",
             "--keep_going",
-            "--output=proto",
-            "--include_aspects", // required for java_proto_library, see
-            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
             "--allow_analysis_failures",
-            "mnemonic(" + filterMnemonic + ", " + kindUnion + ")"
-        };
-        var output = fork(bazelWorkspaceRoot, command, true);
-        if (output == NOT_FOUND) {
-            return Set.of();
+            // required for java_proto_library, see
+            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+            "--include_aspects",
+            // TODO This will result in duplicate .jar when used with rules_jvm_external
+            //      Instead first query for all java_(library|binary|test) including any of the same kind
+            //      they depend on, then resolve the direct dependencies of that combined set
+            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+            //      but it will eliminate the vast majority. Especially when single version policies are in place.
+            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+            // Collect all dependencies
+            """
+            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
+                """ +
+                // And then filter out...
+                """
+                $full_deps except (
+                    """ +
+                    // java_* rules, they are handled separately
+                    """
+                    kind("java_(library|binary|test)", $full_deps)
+                        """ +
+                        // and source files that are not .jar or .srcjar
+                        """
+                        union (
+                            kind("source file", $full_deps)
+                            except filter("\\.(src|)jar$", $full_deps)
+                        )
+                    )
+                )
+            """,
+            "--output=starlark",
+            "--starlark:expr",
+            """
+            json.encode({
+                "target": str(target.label),
+                "files": [x.path for x in target.files.to_list() if x.path.endswith(".srcjar") or x.path.endswith("-src.jar") or x.path.endswith("-sources.jar")],
+            })
+            """,
+        })) {
+            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
+        } catch (Exception e) {
+            LOG.warning("Lookup failed: " + e.toString());
         }
-        return readActionGraph(output, filterArgument);
-    }
 
-    private Set<String> readActionGraph(Path output, String filterArgument) {
-        try {
-            var containerV2 = AnalysisProtosV2.ActionGraphContainer.parseFrom(Files.newInputStream(output));
-            if (containerV2.getArtifactsCount() != 0 && containerV2.getArtifactsList().get(0).getId() != 0) {
-                return readActionGraphFromV2(containerV2, filterArgument);
-            }
-            var containerV1 = AnalysisProtos.ActionGraphContainer.parseFrom(Files.newInputStream(output));
-            return readActionGraphFromV1(containerV1, filterArgument);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+        // TODO Build targets which output jars whose outputs are missing
 
-    private Set<String> readActionGraphFromV1(AnalysisProtos.ActionGraphContainer container, String filterArgument) {
-        var argumentPaths = new HashSet<String>();
-        var outputIds = new HashSet<String>();
-        for (var action : container.getActionsList()) {
-            var isFilterArgument = false;
-            for (var argument : action.getArgumentsList()) {
-                if (isFilterArgument && argument.startsWith("-")) {
-                    isFilterArgument = false;
-                    continue;
-                }
-                if (!isFilterArgument) {
-                    isFilterArgument = argument.equals(filterArgument);
-                    continue;
-                }
-                argumentPaths.add(argument);
-            }
-            outputIds.addAll(action.getOutputIdsList());
-        }
-        var artifactPaths = new HashSet<String>();
-        for (var artifact : container.getArtifactsList()) {
-            if (!argumentPaths.contains(artifact.getExecPath())) {
-                // artifact was not specified by --filterArgument
-                continue;
-            }
-            if (outputIds.contains(artifact.getId()) && !filterArgument.equals("--output")) {
-                // artifact is the output of another java action
-                continue;
-            }
-            var relative = artifact.getExecPath();
-            LOG.info("...found bazel dependency " + relative);
-            artifactPaths.add(relative);
-        }
-        return artifactPaths;
-    }
-
-    private Set<String> readActionGraphFromV2(AnalysisProtosV2.ActionGraphContainer container, String filterArgument) {
-        var argumentPaths = new HashSet<String>();
-        var outputIds = new HashSet<Integer>();
-        for (var action : container.getActionsList()) {
-            var isFilterArgument = false;
-            for (var argument : action.getArgumentsList()) {
-                if (isFilterArgument && argument.startsWith("-")) {
-                    isFilterArgument = false;
-                    continue;
-                }
-                if (!isFilterArgument) {
-                    isFilterArgument = argument.equals(filterArgument);
-                    continue;
-                }
-                argumentPaths.add(argument);
-            }
-            outputIds.addAll(action.getOutputIdsList());
-        }
-        var artifactPaths = new HashSet<String>();
-        for (var artifact : container.getArtifactsList()) {
-            if (outputIds.contains(artifact.getId()) && !filterArgument.equals("--output")) {
-                // artifact is the output of another java action
-                continue;
-            }
-            var relative = buildPath(container.getPathFragmentsList(), artifact.getPathFragmentId());
-            if (!argumentPaths.contains(relative)) {
-                // artifact was not specified by --filterArgument
-                continue;
-            }
-            LOG.info("...found bazel dependency " + relative);
-            artifactPaths.add(relative);
-        }
-        return artifactPaths;
-    }
-
-    private static String buildPath(List<PathFragment> fragments, int id) {
-        for (PathFragment fragment : fragments) {
-            if (fragment.getId() == id) {
-                if (fragment.getParentId() != 0) {
-                    return buildPath(fragments, fragment.getParentId()) + "/" + fragment.getLabel();
-                }
-                return fragment.getLabel();
-            }
-        }
-        throw new RuntimeException();
-    }
-
-    private static Path fork(Path workspaceRoot, String[] command, boolean allowNonZeroExit) {
-        try {
-            LOG.info("Running " + String.join(" ", command) + " ...");
-            var output = Files.createTempFile("java-language-server-bazel-output", ".proto");
-            var process =
-                    new ProcessBuilder()
-                            .command(command)
-                            .directory(workspaceRoot.toFile())
-                            .redirectError(org.javacs.Main.showMiscLogging ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.DISCARD)
-                            .redirectOutput(output.toFile())
-                            .start();
-            // Wait for process to exit
-            var result = process.waitFor();
-            if (result != 0) {
-                LOG.severe("`" + String.join(" ", command) + "` returned " + result);
-                if (!allowNonZeroExit) {
-                    return NOT_FOUND;
-                }
-            }
-            return output;
-        } catch (InterruptedException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new HashSet<Path>();
     }
 
     private static final Path NOT_FOUND = Paths.get("");
