@@ -152,6 +152,15 @@ public class FindHelper {
             }
         }
 
+        if (start == -1) {
+            LOG.warning("Got -1 for start position in " + compilationUnit.getSourceFile().getName());
+            start = 0;
+        }
+        if (end == -1 || start > end) {
+            LOG.warning("End position " + end + " smaller than start position " + start + " in " + compilationUnit.getSourceFile().getName());
+            end = start;
+        }
+
         var startLine = (int) lines.getLineNumber(start);
         var startColumn = (int) lines.getColumnNumber(start);
         var startPos = new Position(startLine - 1, startColumn - 1);
