@@ -304,6 +304,12 @@ class InferConfig {
             try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
                 "bazel",
                 "cquery",
+                "--keep_going",
+                "--allow_analysis_failures",
+                // required for java_proto_library, see
+                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+                "--include_aspects",
                 // TODO This will result in duplicate .jar when used with rules_jvm_external
                 //      Instead first query for all java_(library|binary|test) including any of the same kind
                 //      they depend on, then resolve the direct dependencies of that combined set
@@ -433,6 +439,12 @@ class InferConfig {
             try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
                 "bazel",
                 "cquery",
+                "--keep_going",
+                "--allow_analysis_failures",
+                // required for java_proto_library, see
+                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+                "--include_aspects",
                 // TODO This will result in duplicate .jar when used with rules_jvm_external
                 //      Instead first query for all java_(library|binary|test) including any of the same kind
                 //      they depend on, then resolve the direct dependencies of that combined set
