@@ -68,4 +68,6 @@ await createVSIX({
     updatePackageJson: false,
     dependencies: false,
     version,
+    baseContentUrl: `https://github.com/Silic0nS0ldier/java-language-server/blob/${version}/extension/vsix/`,
+    baseImagesUrl: `https://github.com/Silic0nS0ldier/java-language-server/blob/${version}/extension/vsix/`,
 });
