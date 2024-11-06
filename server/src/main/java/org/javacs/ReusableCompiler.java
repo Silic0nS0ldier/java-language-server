@@ -82,7 +82,7 @@ public class ReusableCompiler {
     private static final JavacTool systemProvider = JavacTool.create();
 
     private List<String> currentOptions = new ArrayList<>();
-    private ReusableContext currentContext;
+    private ReusableContext currentContext = new ReusableContext(currentOptions);
     // Holds stack trace taken at time of last borrow.
     // May be null
     private String checkedOut;
