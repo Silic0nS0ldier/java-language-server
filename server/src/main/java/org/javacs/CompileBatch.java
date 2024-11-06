@@ -38,17 +38,19 @@ class CompileBatch implements AutoCloseable {
             for (var t : borrow.task.parse()) {
                 roots.add(t);
             }
+        } catch (IOException e) {
+            // Raised by `borrow.task.parse`, required
+            borrow.close();
+            throw new RuntimeException(e);
+        }
+
+        try {
             // The results of borrow.task.analyze() are unreliable when errors are present
             // You can get at `Element` values using `Trees`
             borrow.task.analyze();
-        } catch (IOException e) {
-            // Raised by `borrow.task.parse` potentially
-            borrow.close();
-            throw new RuntimeException(e);
         } catch (Throwable e) {
-            // All manner of issues may happen in `borrow.task.analyze`
-            borrow.close();
-            throw new RuntimeException(e);
+            // All kinds exceptions may be raised by `borrow.task.analyze`, but failures are
+            // (mostly) safe.
         }
     }
 
