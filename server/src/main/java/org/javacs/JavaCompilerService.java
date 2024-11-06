@@ -41,37 +41,6 @@ class JavaCompilerService implements CompilerProvider {
         this.fileManager = new SourceFileManager();
     }
 
-    private CompileBatch cachedCompile;
-    private Map<JavaFileObject, Long> cachedModified = new HashMap<>();
-
-    private boolean needsCompile(Collection<? extends JavaFileObject> sources) {
-        if (cachedModified.size() != sources.size()) {
-            return true;
-        }
-        for (var f : sources) {
-            if (!cachedModified.containsKey(f)) {
-                return true;
-            }
-            if (f.getLastModified() != cachedModified.get(f)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void loadCompile(Collection<? extends JavaFileObject> sources) {
-        if (cachedCompile != null) {
-            if (!cachedCompile.closed) {
-                throw new RuntimeException("Compiler is still in-use!");
-            }
-        }
-        cachedCompile = doCompile(sources);
-        cachedModified.clear();
-        for (var f : sources) {
-            cachedModified.put(f, f.getLastModified());
-        }
-    }
-
     private CompileBatch doCompile(Collection<? extends JavaFileObject> sources) {
         if (sources.isEmpty()) throw new RuntimeException("empty sources");
 
@@ -91,12 +60,10 @@ class JavaCompilerService implements CompilerProvider {
     }
 
     private CompileBatch compileBatch(Collection<? extends JavaFileObject> sources) {
-        if (needsCompile(sources)) {
-            loadCompile(sources);
-        } else {
-            LOG.info("...using cached compile");
-        }
-        return cachedCompile;
+        // We create BatchCompile each time as it uses a borrowed compiler instance
+        // and getting the lifetimes right is _really_ hard in the current architecture.
+        // TODO Massive refactor so compiler can be reused safely
+        return doCompile(sources);
     }
 
     private static final Pattern PACKAGE_EXTRACTOR = Pattern.compile("^([a-z][_a-zA-Z0-9]*\\.)*[a-z][_a-zA-Z0-9]*");

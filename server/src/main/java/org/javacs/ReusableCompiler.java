@@ -121,21 +121,19 @@ public class ReusableCompiler {
             currentOptions = opts;
             currentContext = new ReusableContext(opts);
         }
-        JavacTaskImpl task =
-                (JavacTaskImpl)
-                        systemProvider.getTask(
-                                null, fileManager, diagnosticListener, opts, classes, compilationUnits, currentContext);
+        JavacTask task = systemProvider.getTask(
+            null, fileManager, diagnosticListener, opts, classes, compilationUnits, currentContext);
 
         task.addTaskListener(currentContext);
 
-        return new Borrow(task, currentContext);
+        return new Borrow(task);
     }
 
     class Borrow implements AutoCloseable {
         final JavacTask task;
         boolean closed;
 
-        Borrow(JavacTask task, ReusableContext ctx) {
+        Borrow(JavacTask task) {
             this.task = task;
         }
 
