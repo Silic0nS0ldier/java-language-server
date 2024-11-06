@@ -42,6 +42,11 @@ class CompileBatch implements AutoCloseable {
             // You can get at `Element` values using `Trees`
             borrow.task.analyze();
         } catch (IOException e) {
+            // Raised by `borrow.task.parse` potentially
+            borrow.close();
+            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            // All manner of issues may happen in `borrow.task.analyze`
             borrow.close();
             throw new RuntimeException(e);
         }
@@ -97,6 +102,7 @@ class CompileBatch implements AutoCloseable {
     @Override
     public void close() {
         closed = true;
+        borrow.close();
     }
 
     private static ReusableCompiler.Borrow batchTask(

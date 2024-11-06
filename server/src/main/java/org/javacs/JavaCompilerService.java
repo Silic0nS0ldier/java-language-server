@@ -64,7 +64,6 @@ class JavaCompilerService implements CompilerProvider {
             if (!cachedCompile.closed) {
                 throw new RuntimeException("Compiler is still in-use!");
             }
-            cachedCompile.borrow.close();
         }
         cachedCompile = doCompile(sources);
         cachedModified.clear();
@@ -82,7 +81,6 @@ class JavaCompilerService implements CompilerProvider {
         // If the compiler needs additional source files that contain package-private files
         LOG.info("...need to recompile with " + addFiles);
         firstAttempt.close();
-        firstAttempt.borrow.close();
 
         var moreSources = new ArrayList<JavaFileObject>();
         moreSources.addAll(sources);

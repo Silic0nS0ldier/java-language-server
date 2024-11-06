@@ -45,6 +45,7 @@ import com.sun.tools.javac.util.DefinedBy.Api;
 import com.sun.tools.javac.util.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -75,14 +76,16 @@ import javax.tools.JavaFileObject;
  * <p><b>This is NOT part of any supported API. If you write code that depends on this, you do so at your own risk. This
  * code and its internal interfaces are subject to change or deletion without notice.</b>
  */
-class ReusableCompiler {
+public class ReusableCompiler {
 
     private static final Logger LOG = Logger.getLogger("main");
     private static final JavacTool systemProvider = JavacTool.create();
 
     private List<String> currentOptions = new ArrayList<>();
     private ReusableContext currentContext;
-    private boolean checkedOut;
+    // Holds stack trace taken at time of last borrow.
+    // May be null
+    private String checkedOut;
 
     /**
      * Creates a new task as if by {@link javax.tools.JavaCompiler#getTask} and runs the provided worker with it. The
@@ -107,10 +110,10 @@ class ReusableCompiler {
             Iterable<String> options,
             Iterable<String> classes,
             Iterable<? extends JavaFileObject> compilationUnits) {
-        if (checkedOut) {
-            throw new RuntimeException("Compiler is already in-use!");
+        if (checkedOut != null) {
+            throw new CheckedOutException(checkedOut);
         }
-        checkedOut = true;
+        checkedOut = Arrays.toString(Thread.currentThread().getStackTrace()).replace(',', '\n');
         List<String> opts =
                 StreamSupport.stream(options.spliterator(), false).collect(Collectors.toCollection(ArrayList::new));
         if (!opts.equals(currentOptions)) {
@@ -149,7 +152,7 @@ class ReusableCompiler {
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
-            checkedOut = false;
+            checkedOut = null;
             closed = true;
         }
     }
@@ -274,6 +277,12 @@ class ReusableCompiler {
                             }
                         };
             }
+        }
+    }
+
+    public class CheckedOutException extends RuntimeException {
+        public CheckedOutException(String stackOfBorrow) {
+            super("Compiler is already in-use! Stack of borrow follows;\n" + stackOfBorrow);
         }
     }
 }

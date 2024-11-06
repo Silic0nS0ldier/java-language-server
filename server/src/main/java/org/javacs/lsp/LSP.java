@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.javacs.ReusableCompiler.CheckedOutException;
 
 public class LSP {
     private static final Gson gson = new Gson();
@@ -213,11 +214,11 @@ public class LSP {
         reader.setDaemon(true);
         reader.start();
 
+        boolean runAsyncWork = true;
+
         // Process messages on main thread
         LOG.info("Reading messages from queue...");
-        var hasAsyncWork = false;
-        processMessages:
-        while (true) {
+        processMessages: while (true) {
             Message r;
             try {
                 // Take a break periodically
@@ -231,17 +232,21 @@ public class LSP {
                 LOG.warning("Stream from client has been closed, exiting...");
                 break processMessages;
             }
-            // If poll(_) failed, loop again
-            if (r == null) {
-                if (hasAsyncWork) {
-                    server.doAsyncWork();
-                    hasAsyncWork = false;
-                }
-                continue;
-            }
-            // Otherwise, process the new message
-            hasAsyncWork = true;
+
             try {
+                // If there is no message, run async work
+                if (r == null) {
+                    if (runAsyncWork) {
+                        // Async work may fail, so we disable up-front to prevent a hot-loop
+                        runAsyncWork = false;
+                        server.doAsyncWork();
+                    }
+                    continue;
+                }
+
+                // Message will be processed, queue up another async work run
+                runAsyncWork = true;
+
                 switch (r.method) {
                     case "initialize":
                         {
@@ -436,12 +441,16 @@ public class LSP {
                     case "$/cancelRequest":
                         // Already handled in peek(message)
                         break;
-                    default:
+                    default: {
                         LOG.warning(String.format("Don't know what to do with method `%s`", r.method));
+                        if (r.id != null) {
+                            error(send, r.id, new ResponseError(ErrorCodes.MethodNotFound, "Method not implemented: " + r.method, null));
+                        }
+                    }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOG.log(Level.SEVERE, e.getMessage(), e);
-                if (r.id != null) {
+                if (r != null && r.id != null) {
                     error(send, r.id, new ResponseError(ErrorCodes.InternalError, e.getMessage(), null));
                 }
             }
