@@ -30,8 +30,10 @@ public class HoverProvider {
 
     public List<MarkedString> hover(Path file, int line, int column) {
         try (var task = compiler.compile(file)) {
-            var position = task.root().getLineMap().getPosition(line, column);
-            var element = new FindHoverElement(task.task).scan(task.root(), position);
+            var root = task.root();
+            var position = root.getLineMap().getPosition(line, column);
+            var element = new FindHoverElement(task.task, root)
+                .scan(root, position);
             if (element == null) return NOT_SUPPORTED;
             var list = new ArrayList<MarkedString>();
             var code = printType(element);

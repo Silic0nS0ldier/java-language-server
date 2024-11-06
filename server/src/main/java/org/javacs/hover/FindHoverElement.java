@@ -7,16 +7,11 @@ import javax.lang.model.element.Element;
 class FindHoverElement extends TreePathScanner<Element, Long> {
 
     private final JavacTask task;
-    private CompilationUnitTree root;
+    private final CompilationUnitTree root;
 
-    FindHoverElement(JavacTask task) {
+    FindHoverElement(JavacTask task, CompilationUnitTree root) {
         this.task = task;
-    }
-
-    @Override
-    public Element visitCompilationUnit(CompilationUnitTree t, Long find) {
-        root = t;
-        return super.visitCompilationUnit(t, find);
+        this.root = root;
     }
 
     @Override
