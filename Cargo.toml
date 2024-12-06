@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+# Target to allow Rules Rust to parse
 [lib]
-path = "/dev/null"
+path = "./build_defs/virtual_path/wrap/main.rs"
 
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }

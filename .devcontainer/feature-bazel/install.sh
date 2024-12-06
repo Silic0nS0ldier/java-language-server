@@ -7,19 +7,19 @@ echo "Running install..."
 ARCH="$(uname --processor)"
 
 if [[ $ARCH == "arm64" ]]; then
-    curl https://github.com/bazelbuild/bazelisk/releases/download/v1.23.0/bazelisk-linux-arm64 -Lo /usr/local/bin/bazel
+    curl https://github.com/bazelbuild/bazelisk/releases/download/v1.24.1/bazelisk-linux-arm64 -Lo /usr/local/bin/bazel
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/buildifier-linux-arm64 -Lo /usr/local/bin/buildifier
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/buildozer-linux-arm64 -Lo /usr/local/bin/buildozer
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/unused_deps-linux-arm64 -Lo /usr/local/bin/unused_deps
-    curl https://github.com/withered-magic/starpls/releases/download/v0.1.15/starpls-linux-aarch64 -Lo /usr/local/bin/starpls
-    curl https://github.com/pnpm/pnpm/releases/download/v9.7.0/pnpm-linux-arm64 -Lo /usr/local/bin/pnpm
+    curl https://github.com/withered-magic/starpls/releases/download/v0.1.19/starpls-linux-aarch64 -Lo /usr/local/bin/starpls
+    curl https://github.com/pnpm/pnpm/releases/download/v9.14.4/pnpm-linux-arm64 -Lo /usr/local/bin/pnpm
 elif [[ $ARCH == "x86_64" ]]; then
-    curl https://github.com/bazelbuild/bazelisk/releases/download/v1.23.0/bazelisk-linux-amd64 -Lo /usr/local/bin/bazel
+    curl https://github.com/bazelbuild/bazelisk/releases/download/v1.24.1/bazelisk-linux-amd64 -Lo /usr/local/bin/bazel
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/buildifier-linux-amd64 -Lo /usr/local/bin/buildifier
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/buildozer-linux-amd64 -Lo /usr/local/bin/buildozer
     curl https://github.com/bazelbuild/buildtools/releases/download/v7.3.1/unused_deps-linux-amd64 -Lo /usr/local/bin/unused_deps
-    curl https://github.com/withered-magic/starpls/releases/download/v0.1.15/starpls-linux-amd64 -Lo /usr/local/bin/starpls
-    curl https://github.com/pnpm/pnpm/releases/download/v9.7.0/pnpm-linux-x64 -Lo /usr/local/bin/pnpm
+    curl https://github.com/withered-magic/starpls/releases/download/v0.1.19/starpls-linux-amd64 -Lo /usr/local/bin/starpls
+    curl https://github.com/pnpm/pnpm/releases/download/v9.14.4/pnpm-linux-x64 -Lo /usr/local/bin/pnpm
 else
     echo "Unknown arch $ARCH"
     exit 1

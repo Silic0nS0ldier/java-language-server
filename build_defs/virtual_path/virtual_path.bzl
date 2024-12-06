@@ -69,12 +69,12 @@ _ATTRS = {
     "_wrapper": attr.label(
         default = Label("//build_defs/virtual_path:wrap"),
         executable = True,
-        cfg = "target",
+        cfg = config.target(),
     ),
     # "_sui": attr.label(
     #     default = Label("//build_defs/virtual_path:sui"),
     #     executable = True,
-    #     cfg = "exec",
+    #     cfg = config.exec(),
     # )
 }
 
@@ -88,7 +88,7 @@ with_virtual_path_binary = rule(
                 #FileProvider,
                 #FilesToRunProvider,
             ],
-            cfg = "target",
+            cfg = config.target(),
             mandatory = True,
             executable = True,
         ),
@@ -108,7 +108,7 @@ with_virtual_path_test = rule(
                 #FileProvider,
                 #FilesToRunProvider,
             ],
-            cfg = "target",
+            cfg = config.target(),
             mandatory = True,
             executable = True,
         ),

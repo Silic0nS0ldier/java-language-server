@@ -14,12 +14,12 @@ maven_bin = rule(
         "_maven_binary": attr.label(
             default = Label("@maven_cli//:bin"),
             executable = True,
-            cfg = "target",
+            cfg = config.target(),
             allow_single_file = True,
         ),
         "_maven_files": attr.label(
             default = Label("@maven_cli//:bin_files"),
-            cfg = "target",
+            cfg = config.target(),
             allow_files = True,
         ),
     },

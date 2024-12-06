@@ -8,7 +8,7 @@
 			"version": "21"
 		},
 		"ghcr.io/devcontainers/features/rust:1": {
-			"version": "1.80.1"
+			"version": "1.83.0"
 		}
 	},
 	"customizations": {

@@ -32,3 +32,24 @@ build:windows --sandbox_add_mount_pair=C:\Temp
 #build --sandbox_add_mount_pair=%workspace%/.bazel/zig-cache
 #build --repo_env=HERMETIC_CC_TOOLCHAIN_CACHE_PREFIX=%workspace%/.bazel/zig-cache
 build --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+
+# Disable embedded and builtin rules
+# Not all rulesets support this, exceptions are as follows;
+# - @rules_java
+#   - +java_common
+#   - +JavaInfo
+#   - +JavaPluginInfo
+# - @rules_rust
+#   - @rules_shell
+common --incompatible_autoload_externally=-@rules_python,+java_common,+JavaInfo,+JavaPluginInfo,-ProguardSpecProvider,-java_binary,-java_import,-java_library,-java_plugin,-java_test,-java_runtime,-java_toolchain,-java_package_configuration,-@com_google_protobuf,@rules_shell,-@rules_android
+
+# Incompatible flags for Bazel 9
+#common --incompatible_disable_native_repo_rules
+#common --incompatible_disable_non_executable_java_binary
+#common --incompatible_disallow_struct_provider_syntax
+#common --incompatible_disable_target_provider_fields
+#common --noincompatible_enable_deprecated_label_apis
+#common --incompatible_stop_exporting_language_modules
+#common --incompatible_auto_exec_groups
+#common --incompatible_disable_starlark_host_transitions
+#common --incompatible_config_setting_private_default_visibility
