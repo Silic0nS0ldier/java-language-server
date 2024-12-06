@@ -107,35 +107,39 @@ public class CodeActionProvider {
         LOG.info(String.format("Check %d diagnostics for quick fixes...", params.context.diagnostics.size()));
         var started = Instant.now();
         var file = Paths.get(params.textDocument.uri);
-        try (var task = compiler.compile(file)) {
-            var actions = new ArrayList<CodeAction>();
-            for (var d : params.context.diagnostics) {
-                var newActions = codeActionForDiagnostic(task, file, d);
-                actions.addAll(newActions);
-            }
-            var elapsed = Duration.between(started, Instant.now()).toMillis();
-            LOG.info(String.format("...created %d quick fixes in %d ms", actions.size(), elapsed));
-            return actions;
+        var actions = new ArrayList<CodeAction>();
+        for (var d : params.context.diagnostics) {
+            var newActions = codeActionForDiagnostic(file, d);
+            actions.addAll(newActions);
         }
+        var elapsed = Duration.between(started, Instant.now()).toMillis();
+        LOG.info(String.format("...created %d quick fixes in %d ms", actions.size(), elapsed));
+        return actions;
     }
 
-    private List<CodeAction> codeActionForDiagnostic(CompileTask task, Path file, Diagnostic d) {
+    private List<CodeAction> codeActionForDiagnostic(Path file, Diagnostic d) {
         // TODO this should be done asynchronously using executeCommand
+        // `task` lifetime needs to be managed carefully, as follow-ups will aquire their own instance
+        var task = compiler.compile(file);
         switch (d.code) {
             case "unused_local":
                 var toStatement = new ConvertVariableToStatement(file, findPosition(task, d.range.start));
+                task.close();
                 return createQuickFix("Convert to statement", toStatement);
             case "unused_field":
                 var toBlock = new ConvertFieldToBlock(file, findPosition(task, d.range.start));
+                task.close();
                 return createQuickFix("Convert to block", toBlock);
             case "unused_class":
                 var removeClass = new RemoveClass(file, findPosition(task, d.range.start));
+                task.close();
                 return createQuickFix("Remove class", removeClass);
             case "unused_method":
                 var unusedMethod = findMethod(task, d.range);
                 var removeMethod =
                         new RemoveMethod(
                                 unusedMethod.className, unusedMethod.methodName, unusedMethod.erasedParameterTypes);
+                task.close();
                 return createQuickFix("Remove method", removeMethod);
             case "unused_throws":
                 var shortExceptionName = extractRange(task, d.range);
@@ -147,12 +151,14 @@ public class CodeActionProvider {
                                 methodWithExtraThrow.methodName,
                                 methodWithExtraThrow.erasedParameterTypes,
                                 notThrown);
+                task.close();
                 return createQuickFix("Remove '" + shortExceptionName + "'", removeThrow);
             case "compiler.warn.unchecked.call.mbr.of.raw.type":
                 var warnedMethod = findMethod(task, d.range);
                 var suppressWarning =
                         new AddSuppressWarningAnnotation(
                                 warnedMethod.className, warnedMethod.methodName, warnedMethod.erasedParameterTypes);
+                task.close();
                 return createQuickFix("Suppress 'unchecked' warning", suppressWarning);
             case "compiler.err.unreported.exception.need.to.catch.or.throw":
                 var needsThrow = findMethod(task, d.range);
@@ -163,10 +169,12 @@ public class CodeActionProvider {
                                 needsThrow.methodName,
                                 needsThrow.erasedParameterTypes,
                                 exceptionName);
+                task.close();
                 return createQuickFix("Add 'throws'", addThrows);
             case "compiler.err.cant.resolve":
             case "compiler.err.cant.resolve.location":
                 var simpleName = extractRange(task, d.range);
+                task.close();
                 var allImports = new ArrayList<CodeAction>();
                 for (var qualifiedName : compiler.publicTopLevelTypes()) {
                     if (qualifiedName.endsWith("." + simpleName)) {
@@ -178,17 +186,21 @@ public class CodeActionProvider {
                 return allImports;
             case "compiler.err.var.not.initialized.in.default.constructor":
                 var needsConstructor = findClassNeedingConstructor(task, d.range);
+                task.close();
                 if (needsConstructor == null) return List.of();
                 var generateConstructor = new GenerateRecordConstructor(needsConstructor);
                 return createQuickFix("Generate constructor", generateConstructor);
             case "compiler.err.does.not.override.abstract":
                 var missingAbstracts = findClass(task, d.range);
                 var implementAbstracts = new ImplementAbstractMethods(missingAbstracts);
+                task.close();
                 return createQuickFix("Implement abstract methods", implementAbstracts);
             case "compiler.err.cant.resolve.location.args":
                 var missingMethod = new CreateMissingMethod(file, findPosition(task, d.range.start));
+                task.close();
                 return createQuickFix("Create missing method", missingMethod);
             default:
+                task.close();
                 return List.of();
         }
     }
@@ -305,7 +317,7 @@ public class CodeActionProvider {
     }
 
     private List<CodeAction> createQuickFix(String title, Rewrite rewrite) {
-        var edits = rewrite.rewrite(compiler);
+        var edits = rewrite.rewrite(compiler);//
         if (edits == Rewrite.CANCELLED) {
             return List.of();
         }
