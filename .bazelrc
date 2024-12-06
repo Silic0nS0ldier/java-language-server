@@ -67,3 +67,5 @@ common --incompatible_disable_target_provider_fields
 #common --incompatible_auto_exec_groups
 common --incompatible_disable_starlark_host_transitions
 common --incompatible_config_setting_private_default_visibility
+
+build --javacopt="-XepOpt:NullAway:AnnotatedPackages=org.javacs -Xep:NullAway:WARN"

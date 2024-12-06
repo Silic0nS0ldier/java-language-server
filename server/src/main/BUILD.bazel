@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
 load("@rules_java//java:java_single_jar.bzl", "java_single_jar")
 
 # Output of interest is main_deploy.jar
@@ -26,6 +26,9 @@ java_library(
     ],
     add_exports = add_exports,
     add_opens = add_opens,
+    plugins = [
+        ":nullaway",
+    ],
     visibility = ["//server/src/test:__pkg__"],
 )
 
@@ -52,4 +55,12 @@ java_single_jar(
     ] + ["Add-Exports: " + package for package in add_exports]
     + ["Add-Opens: " + package for package in add_opens],
     visibility =  ["//extension/vsix:__pkg__"],
+)
+
+
+java_plugin(
+    name = "nullaway",
+    deps = [
+        "@maven//:com_uber_nullaway_nullaway",
+    ],
 )

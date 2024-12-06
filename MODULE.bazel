@@ -25,6 +25,8 @@ maven.install(
         # Benchmarking
         "org.openjdk.jmh:jmh-core:1.37",
         "org.openjdk.jmh:jmh-generator-annprocess:1.37",
+        # Extra checks
+        "com.uber.nullaway:nullaway:0.12.1"
     ],
     lock_file = "//:maven_install.json",
     version_conflict_policy = "pinned",
