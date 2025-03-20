@@ -384,129 +384,151 @@ class InferConfig {
         Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
         Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-            "bazel",
-            "cquery",
-            "--keep_going",
-            "--allow_analysis_failures",
-            // required for java_proto_library, see
-            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
-            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
-            "--include_aspects",
-            // TODO This will result in duplicate .jar when used with rules_jvm_external
-            //      Instead first query for all java_(library|binary|test) including any of the same kind
-            //      they depend on, then resolve the direct dependencies of that combined set
-            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
-            //      but it will eliminate the vast majority. Especially when single version policies are in place.
-            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
-            // Collect all dependencies
-            """
-            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
-                """ +
-                // And then filter out...
+        while (true) {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "--preemptible",
+                "cquery",
+                "--keep_going",
+                "--allow_analysis_failures",
+                // required for java_proto_library, see
+                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+                "--include_aspects",
+                // TODO This will result in duplicate .jar when used with rules_jvm_external
+                //      Instead first query for all java_(library|binary|test) including any of the same kind
+                //      they depend on, then resolve the direct dependencies of that combined set
+                //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+                //      but it will eliminate the vast majority. Especially when single version policies are in place.
+                // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+                // Collect all dependencies
                 """
-                $full_deps except (
+                let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
                     """ +
-                    // java_* rules, they are handled separately
+                    // And then filter out...
                     """
-                    kind("java_(library|binary|test)", $full_deps)
+                    $full_deps except (
                         """ +
-                        // and files that are not .jar
-                        // for generated files they are typically from predeclared outputs, their owning target should also show up
+                        // java_* rules, they are handled separately
                         """
-                        union (
-                            kind("(source|generated) file", $full_deps)
-                            except filter("\\.jar$", $full_deps)
-                        )
-                        """ +
-                        // and .srcjar (source and generated) with patterns;
-                        // - `\.srcjar$` e.g. https://github.com/protocolbuffers/protobuf/pull/7190/files#diff-43f66dfc9e2ac9abf2b2cc408ddb4efa3bda9472e25997ed2ee4d4f8d5f8032dR326
-                        // - `-src\.jar$` e.g. java_proto_library
-                        // - `-sources\.jar$` e.g. rules_jvm_external with `fetch_sources = True`, maven
-                        """
-                        union (
-                            kind("(source|generated) file", $full_deps)
-                            except filter("(\\.src|-(src|sources)\\.)jar$", $full_deps)
+                        kind("java_(library|binary|test)", $full_deps)
+                            """ +
+                            // and files that are not .jar
+                            // for generated files they are typically from predeclared outputs, their owning target should also show up
+                            """
+                            union (
+                                kind("(source|generated) file", $full_deps)
+                                except filter("\\.jar$", $full_deps)
+                            )
+                            """ +
+                            // and .srcjar (source and generated) with patterns;
+                            // - `\.srcjar$` e.g. https://github.com/protocolbuffers/protobuf/pull/7190/files#diff-43f66dfc9e2ac9abf2b2cc408ddb4efa3bda9472e25997ed2ee4d4f8d5f8032dR326
+                            // - `-src\.jar$` e.g. java_proto_library
+                            // - `-sources\.jar$` e.g. rules_jvm_external with `fetch_sources = True`, maven
+                            """
+                            union (
+                                kind("(source|generated) file", $full_deps)
+                                except filter("(\\.src|-(src|sources)\\.)jar$", $full_deps)
+                            )
                         )
                     )
-                )
-            """,
-            "--output=starlark",
-            "--starlark:expr",
-            """
-            json.encode({
-                "target": str(target.label),
-                "files": [x.path for x in target.files.to_list() if x.path.endswith(".jar") and not (x.path.endswith("-src.jar") or x.path.endswith("-sources.jar"))],
-            })
-            """,
-        })) {
-            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
-        } catch (Exception e) {
-            LOG.warning("Lookup failed: " + e.toString());
+                """,
+                "--output=starlark",
+                "--starlark:expr",
+                """
+                json.encode({
+                    "target": str(target.label),
+                    "files": [x.path for x in target.files.to_list() if x.path.endswith(".jar") and not (x.path.endswith("-src.jar") or x.path.endswith("-sources.jar"))],
+                })
+                """,
+            })) {
+                if (result.getExitCode() != 0) {
+                    // Was it a query failure (work with what we got) or pre-emptible interrupt
+                    var interrupted = Files.lines(result.getStderr()).anyMatch(l -> l == "ERROR: build interrupted");
+                    if (interrupted) {
+                        // Retry
+                        continue;
+                    }
+                }
+                return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
+            } catch (Exception e) {
+                LOG.warning("Lookup failed: " + e.toString());
+            }
+
+            // TODO Build targets which output jars whose outputs are missing
+
+            return new HashSet<Path>();
         }
-
-        // TODO Build targets which output jars whose outputs are missing
-
-        return new HashSet<Path>();
     }
 
     private Set<Path> bazelSourcepath(Path bazelWorkspaceRoot) {
         Path outputBase = getBazelOutputBase(bazelWorkspaceRoot);
         Path outputPath = getBazelOutputPath(bazelWorkspaceRoot);
 
-        try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
-            "bazel",
-            "cquery",
-            "--keep_going",
-            "--allow_analysis_failures",
-            // required for java_proto_library, see
-            // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
-            // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
-            "--include_aspects",
-            // TODO This will result in duplicate .jar when used with rules_jvm_external
-            //      Instead first query for all java_(library|binary|test) including any of the same kind
-            //      they depend on, then resolve the direct dependencies of that combined set
-            //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
-            //      but it will eliminate the vast majority. Especially when single version policies are in place.
-            // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
-            // Collect all dependencies
-            """
-            let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
-                """ +
-                // And then filter out...
+        while (true) {
+            try (var result = ChildProcess.fork(bazelWorkspaceRoot, new String[]{
+                "bazel",
+                "--preemptible",
+                "cquery",
+                "--keep_going",
+                "--allow_analysis_failures",
+                // required for java_proto_library, see
+                // https://stackoverflow.com/questions/63430530/bazel-aquery-returns-no-action-information-for-java-proto-library
+                // TODO This may no longer be needed as of https://github.com/Silic0nS0ldier/java-language-server/pull/12
+                "--include_aspects",
+                // TODO This will result in duplicate .jar when used with rules_jvm_external
+                //      Instead first query for all java_(library|binary|test) including any of the same kind
+                //      they depend on, then resolve the direct dependencies of that combined set
+                //      This won't eliminate .jar collisions fully (that requires big redesign to align properly)
+                //      but it will eliminate the vast majority. Especially when single version policies are in place.
+                // NOTE Coarse filtering applied in query to reduce size of final NDJSON output.
+                // Collect all dependencies
                 """
-                $full_deps except (
+                let full_deps = deps(kind("java_(library|binary|test)", ...)) in (
                     """ +
-                    // java_* rules, they are handled separately
+                    // And then filter out...
                     """
-                    kind("java_(library|binary|test)", $full_deps)
+                    $full_deps except (
                         """ +
-                        // and source files that are not .jar or .srcjar
+                        // java_* rules, they are handled separately
                         """
-                        union (
-                            kind("source file", $full_deps)
-                            except filter("\\.(src|)jar$", $full_deps)
+                        kind("java_(library|binary|test)", $full_deps)
+                            """ +
+                            // and source files that are not .jar or .srcjar
+                            """
+                            union (
+                                kind("source file", $full_deps)
+                                except filter("\\.(src|)jar$", $full_deps)
+                            )
                         )
                     )
-                )
-            """,
-            "--output=starlark",
-            "--starlark:expr",
-            """
-            json.encode({
-                "target": str(target.label),
-                "files": [x.path for x in target.files.to_list() if x.path.endswith(".srcjar") or x.path.endswith("-src.jar") or x.path.endswith("-sources.jar")],
-            })
-            """,
-        })) {
-            return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
-        } catch (Exception e) {
-            LOG.warning("Lookup failed: " + e.toString());
+                """,
+                "--output=starlark",
+                "--starlark:expr",
+                """
+                json.encode({
+                    "target": str(target.label),
+                    "files": [x.path for x in target.files.to_list() if x.path.endswith(".srcjar") or x.path.endswith("-src.jar") or x.path.endswith("-sources.jar")],
+                })
+                """,
+            })) {
+                if (result.getExitCode() != 0) {
+                    // Was it a query failure (work with what we got) or pre-emptible interrupt
+                    var interrupted = Files.lines(result.getStderr()).anyMatch(l -> l == "ERROR: build interrupted");
+                    if (interrupted) {
+                        // Retry
+                        continue;
+                    }
+                }
+                return bazelProcessResult(result.getStdout().toFile(), outputBase, outputPath);
+            } catch (Exception e) {
+                LOG.warning("Lookup failed: " + e.toString());
+            }
+
+            // TODO Build targets which output jars whose outputs are missing
+
+            return new HashSet<Path>();
         }
-
-        // TODO Build targets which output jars whose outputs are missing
-
-        return new HashSet<Path>();
     }
 
     private static final Path NOT_FOUND = Paths.get("");
