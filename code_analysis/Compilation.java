@@ -6,15 +6,14 @@ import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import javax.tools.Diagnostic;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
-import javax.tools.ToolProvider;
+import javax.tools.JavaFileManager;
+import static javax.tools.ToolProvider.getSystemJavaCompiler;
 
 /**
  * Results of a compilation
@@ -24,7 +23,7 @@ public class Compilation {
      * Paths of inputs and their AST (internal com.sun.source variant).
      * If empty, AST parsing failed or was not possible.
      */
-    public final ImmutableMap<Path, CompilationUnitTree> sources;
+    public final ImmutableMap<URI, CompilationUnitTree> sources;
 
     /**
      * Diagnostics emitted during compilation.
@@ -37,7 +36,7 @@ public class Compilation {
     public final Errors errors;
 
     private Compilation(
-        ImmutableMap<Path, CompilationUnitTree> sources,
+        ImmutableMap<URI, CompilationUnitTree> sources,
         ImmutableList<Diagnostic<? extends JavaFileObject>> diagnostics,
         Errors errors
     ) {
@@ -46,20 +45,23 @@ public class Compilation {
         this.errors = errors;
     }
 
-    private static final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+    private static final JavaCompiler javaCompiler = getSystemJavaCompiler();
 
     /**
      * Perform a new compilation.
      */
-    public static Compilation perform(Collection<Path> files) {
-        var fileManager = javaCompiler.getStandardFileManager(null, null, null);
-        var compilationUnits = fileManager.getJavaFileObjectsFromPaths(files);
+    public static Compilation perform(Collection<? extends JavaFileObject> files, JavaFileManager fileManager) {
+        if (files.size() == 0) {
+            throw new IllegalArgumentException("No files to compile");
+        }
+
+        var compilationUnits = files;
         ImmutableList.Builder<Diagnostic<? extends JavaFileObject>> diagnostics = ImmutableList.builder();
-        ImmutableMap.Builder<Path, CompilationUnitTree> sources = ImmutableMap.builderWithExpectedSize(files.size());
+        ImmutableMap.Builder<URI, CompilationUnitTree> sources = ImmutableMap.builderWithExpectedSize(files.size());
         // TODO Unclear if internal `com.sun.tools.javac.api.JavacTool.getTask()` which allows customisable context is needed.
         // https://docs.oracle.com/javase/8/docs/api/javax/tools/JavaCompiler.html#getTask-java.io.Writer-javax.tools.JavaFileManager-javax.tools.DiagnosticListener-java.lang.Iterable-java.lang.Iterable-java.lang.Iterable-
         var task = javaCompiler.getTask(
-            // TODO Provide an implementation so output isn't dumped to `System.err`
+            // TODO Provide an implementation so output isn't dumped to `System.err` (also capture)
             /*out=java.io.Writer*/ null,
             // TODO Customise this properly so task instances operate over a stable snapshot
             //      Also allows more fancy things like in-memory only files
@@ -85,8 +87,7 @@ public class Compilation {
             try {
                 var astRoots = javacTask.parse();
                 for (var astRoot : astRoots) {
-                    var path = fileManager.asPath(astRoot.getSourceFile());
-                    sources.put(path, astRoot);
+                    sources.put(astRoot.getSourceFile().toUri(), astRoot);
                 }
             } catch (IOException e) {
                 parseError = e;

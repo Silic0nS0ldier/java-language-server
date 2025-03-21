@@ -41,7 +41,11 @@ build --action_env BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 #   - +JavaPluginInfo
 # - @rules_rust
 #   - @rules_shell
-common --incompatible_autoload_externally=-@rules_python,+java_common,+JavaInfo,+JavaPluginInfo,-ProguardSpecProvider,-java_binary,-java_import,-java_library,-java_plugin,-java_test,-java_runtime,-java_toolchain,-java_package_configuration,-@com_google_protobuf,@rules_shell,-@rules_android
+# - @contrib_rules_jvm
+#   - java_library
+#   - java_test
+#   - java_import
+common --incompatible_autoload_externally=-@rules_python,+java_common,+JavaInfo,+JavaPluginInfo,-ProguardSpecProvider,-java_binary,java_import,java_library,-java_plugin,java_test,-java_runtime,-java_toolchain,-java_package_configuration,-@com_google_protobuf,@rules_shell,-@rules_android
 
 # Incompatible flags for Bazel 9
 common --incompatible_disable_native_repo_rules
@@ -69,3 +73,5 @@ common --incompatible_disable_starlark_host_transitions
 common --incompatible_config_setting_private_default_visibility
 
 build --javacopt="-XepOpt:NullAway:AnnotatedPackages=org.javacs -Xep:NullAway:WARN"
+
+test --test_output=errors

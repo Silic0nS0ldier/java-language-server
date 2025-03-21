@@ -1,0 +1,44 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("//:build_defs/junit5_test_suite.bzl", "junit5_test_suite")
+
+add_exports = [
+    "jdk.compiler/com.sun.tools.javac.api",
+    "jdk.compiler/com.sun.tools.javac.code",
+    "jdk.compiler/com.sun.tools.javac.comp",
+    "jdk.compiler/com.sun.tools.javac.main",
+    "jdk.compiler/com.sun.tools.javac.tree",
+    "jdk.compiler/com.sun.tools.javac.model",
+    "jdk.compiler/com.sun.tools.javac.util",
+]
+add_opens = [
+    "jdk.compiler/com.sun.tools.javac.api",
+]
+
+java_library(
+    name = "code_analysis",
+    srcs = [
+        "Compilation.java",
+        "file_managers/StringSourceJavaFileObject.java",
+        "file_managers/InMemoryJavaFileManager.java",
+    ], #glob(["**/*.java"]),
+    deps = [
+        artifact("com.google.guava:guava"),
+        artifact("jakarta.annotation:jakarta.annotation-api"),
+    ],
+    add_exports = add_exports,
+    add_opens = add_opens,
+    plugins = [
+        "//build_defs/java_plugins:nullaway",
+    ],
+)
+
+junit5_test_suite(
+    name = "tests",
+    srcs = glob(["**/*Test.java"]),
+    package_root = "me.djmm.java.code_analysis",
+    deps = [
+        ":code_analysis",
+        artifact("org.junit.jupiter:junit-jupiter-api"),
+    ],
+)
