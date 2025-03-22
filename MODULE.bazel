@@ -2,22 +2,38 @@ module(name = "bazel_java_vscode")
 
 # TODO https://github.com/bazel-contrib/rules_bazel_integration_test for bazel testing
 # Will also help automate --deleted_packages management.
-bazel_dep(name = "aspect_bazel_lib", version = "2.9.4")
-bazel_dep(name = "aspect_rules_js", version = "2.1.2")
-bazel_dep(name = "aspect_rules_ts", version = "3.3.1")
-bazel_dep(name = "rules_java", version = "8.6.2")
-bazel_dep(name = "rules_jvm_external", version = "6.6")
-bazel_dep(name = "rules_nodejs", version = "6.3.2")
-bazel_dep(name = "hermetic_cc_toolchain", version = "3.1.1")
-bazel_dep(name = "rules_rust", version = "0.54.1")
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0")
+bazel_dep(name = "aspect_rules_js", version = "2.3.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.5.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "contrib_rules_jvm", version = "0.28.0")
+bazel_dep(name = "hermetic_cc_toolchain", version = "3.2.0")
+bazel_dep(name = "rules_java", version = "8.11.0")
+bazel_dep(name = "rules_jvm_external", version = "6.7")
+bazel_dep(name = "rules_nodejs", version = "6.3.4")
+bazel_dep(name = "rules_rust", version = "0.59.2")
+
+JUNIT_JUPITER_VERSION = "5.12.1"
+JUNIT_PLATFORM_VERSION = "1.12.1"
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 # REPIN=1 bazel run @maven//:pin
 maven.install(
     artifacts = [
-        "com.google.code.gson:gson:2.11.0",
+        # New LSP
+        "org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0",
+
+        "com.google.guava:guava:33.4.5-jre",
+        "com.google.code.gson:gson:2.12.1",
         "jakarta.annotation:jakarta.annotation-api:3.0.0",
+
+        "org.junit.platform:junit-platform-suite-api:%s" % JUNIT_PLATFORM_VERSION,
+        "org.junit.platform:junit-platform-launcher:%s" % JUNIT_PLATFORM_VERSION,
+        "org.junit.platform:junit-platform-reporting:%s" % JUNIT_PLATFORM_VERSION,
+        "org.junit.jupiter:junit-jupiter-api:%s" % JUNIT_JUPITER_VERSION,
+        "org.junit.jupiter:junit-jupiter-params:%s" % JUNIT_JUPITER_VERSION,
+        "org.junit.jupiter:junit-jupiter-engine:%s" % JUNIT_JUPITER_VERSION,
+
         # Test dependencies
         # TODO Update to JUnit 5
         "junit:junit:4.13.2",
@@ -26,7 +42,7 @@ maven.install(
         "org.openjdk.jmh:jmh-core:1.37",
         "org.openjdk.jmh:jmh-generator-annprocess:1.37",
         # Extra checks
-        "com.uber.nullaway:nullaway:0.12.1"
+        "com.uber.nullaway:nullaway:0.12.4"
     ],
     lock_file = "//:maven_install.json",
     version_conflict_policy = "pinned",

@@ -16,12 +16,8 @@ add_opens = [
 ]
 
 java_library(
-    name = "code_analysis",
-    srcs = [
-        "Compilation.java",
-        "file_managers/StringSourceJavaFileObject.java",
-        "file_managers/InMemoryJavaFileManager.java",
-    ], #glob(["**/*.java"]),
+    name = "lib",
+    srcs = glob(["**/*.java"], exclude = ["**/*Test.java"]),
     deps = [
         artifact("com.google.guava:guava"),
         artifact("jakarta.annotation:jakarta.annotation-api"),
@@ -38,7 +34,7 @@ junit5_test_suite(
     srcs = glob(["**/*Test.java"]),
     package_root = "me.djmm.java.code_analysis",
     deps = [
-        ":code_analysis",
+        ":lib",
         artifact("org.junit.jupiter:junit-jupiter-api"),
     ],
 )
