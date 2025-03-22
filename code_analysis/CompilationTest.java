@@ -25,8 +25,14 @@ public class CompilationTest {
         var fileManager = new InMemoryJavaFileManager(files);
         
         var compilation = Compilation.perform(files, fileManager);
+        
+        var diagnosticsRepr = compilation.diagnostics
+            .stream()
+            .map(d -> d.getMessage(null))
+            .reduce((a, b) -> a + "\n" + b)
+            .orElse("");
+        assertEquals("", diagnosticsRepr);
 
-        assertEquals(0, compilation.diagnostics.size());
         assertEquals(1, compilation.sources.size());
         var tree = compilation.sources.get(fileUri);
         assertEquals(

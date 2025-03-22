@@ -68,6 +68,8 @@ public class Compilation {
             /*fileManager=javax.tools.JavaFileManager*/ fileManager,
             /*diagnosticListener=javax.tools.DiagnosticListener<? super javax.tools.JavaFileObject>*/ diagnostics::add,
             // TODO Set compiler options
+            //      -classpath, for .jar files and directories containing .class files
+            //                  delimited by ':' on Linux/macOS and ';' on Windows
             /*options=Iterable<String*/ List.of(),
             // Classes to be processed by annotation processing, nothing for now.
             /*classes=Iterable<String>*/ List.of(),
