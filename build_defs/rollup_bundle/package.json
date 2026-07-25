@@ -4,7 +4,7 @@
     "dependencies": {
         "@rollup/plugin-commonjs": "^29.0.3",
         "@rollup/plugin-json": "^6.1.0",
-        "@rollup/plugin-node-resolve": "^15.3.1",
+        "@rollup/plugin-node-resolve": "^16.0.3",
         "cleye": "^2.6.0",
         "rollup": "^4.62.2"
     }
