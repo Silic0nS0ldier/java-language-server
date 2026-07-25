@@ -3,7 +3,7 @@ module(name = "bazel_java_vscode")
 # TODO https://github.com/bazel-contrib/rules_bazel_integration_test for bazel testing
 # Will also help automate --deleted_packages management.
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
-bazel_dep(name = "aspect_rules_js", version = "3.0.3")
+bazel_dep(name = "aspect_rules_js", version = "3.2.3")
 bazel_dep(name = "aspect_rules_ts", version = "3.9.2")
 bazel_dep(name = "rules_java", version = "8.6.2")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
