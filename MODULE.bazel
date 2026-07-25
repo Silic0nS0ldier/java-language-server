@@ -116,9 +116,9 @@ use_repo(crate, "crates")
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "maven_cli",
-    sha256 = "7a9cdf674fc1703d6382f5f330b3d110ea1b512b51f1652846d9e4e8a588d766",
-    urls = ["https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"],
-    strip_prefix = "apache-maven-3.9.9",
+    sha256 = "80ffca22aed9e8b9713a232f3394fd81d7f20322df75efdb2b047dbd3e3a23bb",
+    urls = ["https://dlcdn.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz"],
+    strip_prefix = "apache-maven-3.9.16",
     add_prefix = "src",
     build_file_content = """
 alias(

@@ -1,6 +1,7 @@
 common --enable_platform_specific_config
 
 common --symlink_prefix=.bazel/
+common --lockfile_mode=error
 
 # Enable Java 21 language features
 build --java_runtime_version=21
