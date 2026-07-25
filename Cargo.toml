@@ -11,4 +11,4 @@ path = "./build_defs/virtual_path/wrap/main.rs"
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }
 serde = { version = "1.0.229", features = ["derive"] }
-serde_json = { version = "1.0.127" }
+serde_json = { version = "1.0.151" }
