@@ -33,8 +33,7 @@ import {
     LanguageClient,
     type LanguageClientOptions,
     type ServerOptions,
-    NotificationType
-} from "vscode-languageclient";
+} from "vscode-languageclient/node";
 import {loadStyles, decoration} from './textMate.js';
 import AdmZip from 'adm-zip';
 import fs from "node:fs";
@@ -44,7 +43,7 @@ import { downloadJre, resolveJre } from "./download-jre.js";
 export async function activate(context: ExtensionContext) {
     console.log('Activating Java');
 
-    const outputChannel = window.createOutputChannel("Java Language Server");
+    const outputChannel = window.createOutputChannel("Java Language Server", { log: true });
 
     // Teach VSCode to open JAR files
     workspace.registerTextDocumentContentProvider('jar', new JarFileSystemProvider());
@@ -116,19 +115,15 @@ export async function activate(context: ExtensionContext) {
 
     // Create the language client and start the client.
     let client = new LanguageClient('java', 'Java Language Server', serverOptions, clientOptions);
-    let disposable = client.start();
 
-    // Push the disposable to the context's subscriptions so that the 
+    // Push the client to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(client);
 
     // Register test commands
     commands.registerCommand('java.command.test.run', runTest);
     commands.registerCommand('java.command.test.debug', debugTest);
     commands.registerCommand('java.command.findReferences', runFindReferences);
-
-	// When the language client activates, register a progress-listener
-    client.onReady().then(() => createProgressListeners(client));
 
     // Apply semantic colors using custom notification
     function asRange(r: RangeLike) {
@@ -177,14 +172,18 @@ export async function activate(context: ExtensionContext) {
 			applySemanticColors()
 		}
 	}
-    client.onReady().then(() => {
-        client.onNotification<SemanticColors, unknown>(new NotificationType('java/colors'), cacheSemanticColors);
-        context.subscriptions.push(window.onDidChangeVisibleTextEditors(applySemanticColors));
-        context.subscriptions.push(workspace.onDidCloseTextDocument(forgetSemanticColors));
-        context.subscriptions.push(workspace.onDidChangeConfiguration(onChangeConfiguration))
-    });
+    context.subscriptions.push(window.onDidChangeVisibleTextEditors(applySemanticColors));
+    context.subscriptions.push(workspace.onDidCloseTextDocument(forgetSemanticColors));
+    context.subscriptions.push(workspace.onDidChangeConfiguration(onChangeConfiguration));
     await loadStyles();
     applySemanticColors();
+
+	// Start the client and wait for it to be ready
+    await client.start();
+
+	// Register notifications after client is ready
+    client.onNotification('java/colors', (event: SemanticColors) => cacheSemanticColors(event));
+    createProgressListeners(client);
 }
 
 // Allows VSCode to open files like jar:file:///path/to/dep.jar!/com/foo/Thing.java
@@ -360,13 +359,13 @@ function createProgressListeners(client: LanguageClient) {
 		}
 	}
 	// Use custom notifications to drive progressListener
-	client.onNotification<ProgressMessage, unknown>(new NotificationType('java/startProgress'), (event) => {
+	client.onNotification('java/startProgress', (event: ProgressMessage) => {
 		progressListener.startProgress(event.message);
 	});
-	client.onNotification<ProgressMessage, unknown>(new NotificationType('java/reportProgress'), (event) => {
+	client.onNotification('java/reportProgress', (event: ProgressMessage) => {
 		progressListener.reportProgress(event.message, event.increment);
 	});
-	client.onNotification(new NotificationType('java/endProgress'), () => {
+	client.onNotification('java/endProgress', () => {
 		progressListener.endProgress();
 	});
 };
