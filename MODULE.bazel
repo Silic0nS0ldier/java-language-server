@@ -2,12 +2,12 @@ module(name = "bazel_java_vscode")
 
 # TODO https://github.com/bazel-contrib/rules_bazel_integration_test for bazel testing
 # Will also help automate --deleted_packages management.
-bazel_dep(name = "aspect_bazel_lib", version = "2.9.4")
-bazel_dep(name = "aspect_rules_js", version = "2.1.2")
-bazel_dep(name = "aspect_rules_ts", version = "3.3.1")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "aspect_rules_js", version = "3.0.3")
+bazel_dep(name = "aspect_rules_ts", version = "3.9.2")
 bazel_dep(name = "rules_java", version = "8.6.2")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
-bazel_dep(name = "rules_nodejs", version = "6.3.2")
+bazel_dep(name = "rules_nodejs", version = "6.7.5")
 bazel_dep(name = "hermetic_cc_toolchain", version = "3.1.1")
 bazel_dep(name = "rules_rust", version = "0.54.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
@@ -55,7 +55,18 @@ register_toolchains(
 )
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
-node.toolchain(node_version = "20.14.0")
+node.toolchain(
+    node_repositories = {
+        "26.5.0-darwin_arm64": ("node-v26.5.0-darwin-arm64.tar.xz", "node-v26.5.0-darwin-arm64", "48231d6204eca6be13e6c5184dfdffa1d64ad88880364cc2cfb198f872cb2b13"),
+        "26.5.0-darwin_amd64": ("node-v26.5.0-darwin-x64.tar.xz", "node-v26.5.0-darwin-x64", "8cf6704df7d8bfbfb2e290b23de0e7da9569e6741391035eaa0ddcb50fd8d3d0"),
+        "26.5.0-linux_arm64": ("node-v26.5.0-linux-arm64.tar.xz", "node-v26.5.0-linux-arm64", "036df0b49662ebb350eb56f1cac603699b1e9ed1e2603ee129fefda473479030"),
+        "26.5.0-linux_ppc64le": ("node-v26.5.0-linux-ppc64le.tar.xz", "node-v26.5.0-linux-ppc64le", "d8042da56b7b8ae15b65239efc642918f904d689e0c96a2943c782bd7c126e1b"),
+        "26.5.0-linux_s390x": ("node-v26.5.0-linux-s390x.tar.xz", "node-v26.5.0-linux-s390x", "cb6c7942a0ef6ac6275d39aba2de2cf58c6037e5529d065cf4ec834500746802"),
+        "26.5.0-linux_amd64": ("node-v26.5.0-linux-x64.tar.xz", "node-v26.5.0-linux-x64", "9f619528f1db5ddc41dccf54211066fb42228d69a156733c69cb9d6cc92e358c"),
+        "26.5.0-windows_amd64": ("node-v26.5.0-win-x64.zip", "node-v26.5.0-win-x64", "d3b2277dbcccfdf24ef6302928f64f484cff1d77a6d3caa3a28f4d20ce9158f6"),
+    },
+    node_version = "26.5.0",
+)
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 

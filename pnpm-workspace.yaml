@@ -1,3 +1,20 @@
 packages:
   - extension
   - 'build_defs/*'
+allowBuilds:
+  '@vscode/vsce-sign': false
+  core-js-pure: false
+  dtrace-provider: false
+  keytar: false
+  re2: false
+packageExtensions:
+  "@secretlint/resolver":
+    dependencies:
+      "@secretlint/secretlint-rule-basicauth": "^10.2.2"
+      "@secretlint/secretlint-rule-no-dotenv": "^10.2.2"
+      "@secretlint/secretlint-rule-npm": "^10.2.2"
+      "@secretlint/secretlint-rule-preset-recommend": "^10.2.2"
+      "@secretlint/secretlint-rule-privatekey": "^10.2.2"
+  "@textlint/resolver":
+    dependencies:
+      "@secretlint/secretlint-formatter-sarif": "^10.2.2"

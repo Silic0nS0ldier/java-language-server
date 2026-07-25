@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "rangeStrategy": "bump",
+  "customManagers": [
+    {
+      "description": "Bazel devcontainer feature",
+      "customType": "regex",
+      "depTypeTemplate": "devcontainer.feature.bazel",
+      "managerFilePatterns": [
+        ".devcontainer/feature-bazel/install.sh"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*(datasource=(?<datasource>.*?) )?depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s*.*?_VERSION=\"(?<currentValue>.*)\""
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "*"
+      ],
+      "minimumReleaseAge": "3 days",
+      "description": "Wait 3 days before updating. Safeguard against supply chain attacks and (for npm) unpublishing of packages."
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "pnpm.overrides"
+      ],
+      "enabled": false,
+      "description": "Overrides are managed manually for security and/or workaround reasons."
+    },
+    {
+      "matchManagers": [
+        "custom.regex",
+        "npm"
+      ],
+      "matchDepNames": [
+        "pnpm"
+      ],
+      "groupName": "pnpm",
+      "description": "Update all pnpm package manager references together."
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "nodejs/node"
+      ],
+      "allowedVersions": "/^v\\d*[02468]\\./",
+      "description": "Only update NodeJS to LTS (even major) versions."
+    },
+    {
+      "matchManagers": [
+        "custom.regex",
+        "npm"
+      ],
+      "matchDepNames": [
+        "nodejs/node",
+        "@types/node"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "groupName": "nodejs",
+      "description": "Update NodeJS and @types/node major versions together to keep them in sync."
+    }
+  ]
+}

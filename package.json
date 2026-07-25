@@ -3,7 +3,8 @@
         "onlyBuiltDependencies": []
     },
     "dependencies": {
-        "@types/node": "^20.14.10",
-        "typescript": "^5.4.5"
+        "@types/node": "^20.19.43",
+        "renovate": "^43.279.1",
+        "typescript": "^5.9.3"
     }
 }
