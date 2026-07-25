@@ -1,7 +1,7 @@
 {
     "type": "module",
     "dependencies": {
-        "adm-zip": "^0.4.16",
+        "adm-zip": "^0.6.0",
         "jsonc-parser": "^2.3.1",
         "make-fetch-happen": "13.0.1",
         "ssri": "^10.0.6",
@@ -9,7 +9,7 @@
         "vscode-languageclient": "^6.1.4"
     },
     "devDependencies": {
-        "@types/adm-zip": "^0.4.34",
+        "@types/adm-zip": "^0.5.8",
         "@types/make-fetch-happen": "10.0.4",
         "@types/ssri": "^7.1.5",
         "@types/vscode": "^1.125.0"

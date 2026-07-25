@@ -50,8 +50,8 @@ importers:
   extension:
     dependencies:
       adm-zip:
-        specifier: ^0.4.16
-        version: 0.4.16
+        specifier: ^0.6.0
+        version: 0.6.0
       jsonc-parser:
         specifier: ^2.3.1
         version: 2.3.1
@@ -69,8 +69,8 @@ importers:
         version: 6.1.4
     devDependencies:
       '@types/adm-zip':
-        specifier: ^0.4.34
-        version: 0.4.34
+        specifier: ^0.5.8
+        version: 0.5.8
       '@types/make-fetch-happen':
         specifier: 10.0.4
         version: 10.0.4
@@ -935,8 +935,8 @@ packages:
   '@thi.ng/zipper@1.0.3':
     resolution: {integrity: sha512-dWfuk5nzf5wGEmcF90AXNEuWr3NVwRF+cf/9ZSE6xImA7Vy5XpHNMwLHFszZaC+kqiDXr+EZ0lXWDF46a8lSPA==}
 
-  '@types/adm-zip@0.4.34':
-    resolution: {integrity: sha512-8ToYLLAYhkRfcmmljrKi22gT2pqu7hGMDtORP1emwIEGmgUTZOsaDjzWFzW5N2frcFRz/50CWt4zA1CxJ73pmQ==}
+  '@types/adm-zip@0.5.8':
+    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
 
   '@types/bunyan@1.8.11':
     resolution: {integrity: sha512-758fRH7umIMk5qt5ELmRMff4mLDlN+xyYzC+dkPTdKwbSkJFvz6xwyScrytPU0QIBbRRwbiE8/BIg8bpajerNQ==}
@@ -1094,10 +1094,6 @@ packages:
   abbrev@5.0.0:
     resolution: {integrity: sha512-/XrFJgzQQQHpti1raDJC6m4ws6aNktmjBlhk8Fdlk7LwCEuDoieEJJY9OFHjfiFJFFRM2tK+Ky/IsfbbmlMu1w==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
-
-  adm-zip@0.4.16:
-    resolution: {integrity: sha512-TFi4HBKSGfIKsK5YCkKaaFG2m4PEDyViZmEwof3MTIgzimHLto6muaHVpbrljdIvIrFZzEq/p4nafOeLcYegrg==}
-    engines: {node: '>=0.3.0'}
 
   adm-zip@0.6.0:
     resolution: {integrity: sha512-XleryMhbuksdKtofnWZ9Sk+4CUTbms4Mb/EU32SZwToAyZ5RgVos/ki8n+yr0LWHOGKuakbXTuuYNHLQjhddgg==}
@@ -4552,7 +4548,7 @@ snapshots:
       '@thi.ng/arrays': 1.0.3
       '@thi.ng/checks': 2.9.11
 
-  '@types/adm-zip@0.4.34':
+  '@types/adm-zip@0.5.8':
     dependencies:
       '@types/node': 20.19.43
 
@@ -4776,8 +4772,6 @@ snapshots:
 
   abbrev@5.0.0:
     optional: true
-
-  adm-zip@0.4.16: {}
 
   adm-zip@0.6.0: {}
 
