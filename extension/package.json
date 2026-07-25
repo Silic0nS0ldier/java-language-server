@@ -2,7 +2,7 @@
     "type": "module",
     "dependencies": {
         "adm-zip": "^0.6.0",
-        "jsonc-parser": "^2.3.1",
+        "jsonc-parser": "^3.3.1",
         "make-fetch-happen": "16.0.1",
         "ssri": "^10.0.6",
         "tar": "^7.5.21",
