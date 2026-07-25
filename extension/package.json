@@ -6,7 +6,7 @@
         "make-fetch-happen": "16.0.1",
         "ssri": "^14.0.0",
         "tar": "^7.5.21",
-        "vscode-languageclient": "^6.1.4"
+        "vscode-languageclient": "^10.1.0"
     },
     "devDependencies": {
         "@types/adm-zip": "^0.5.8",
