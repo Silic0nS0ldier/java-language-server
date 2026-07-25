@@ -5,6 +5,6 @@
     "dependencies": {
         "@types/node": "^24.13.3",
         "renovate": "^43.279.1",
-        "typescript": "^5.9.3"
+        "typescript": "^7.0.2"
     }
 }
