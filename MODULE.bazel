@@ -9,7 +9,7 @@ bazel_dep(name = "rules_java", version = "8.6.2")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "rules_nodejs", version = "6.7.5")
 bazel_dep(name = "hermetic_cc_toolchain", version = "3.1.1")
-bazel_dep(name = "rules_rust", version = "0.54.1")
+bazel_dep(name = "rules_rust", version = "0.71.3")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
@@ -99,8 +99,8 @@ register_toolchains(
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
-    versions = ["1.83.0"],
-    edition = "2021",
+    versions = ["1.97.1"],
+    edition = "2024",
 )
 use_repo(rust, "rust_toolchains")
 register_toolchains("@rust_toolchains//:all")
