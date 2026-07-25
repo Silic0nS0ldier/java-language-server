@@ -1,12 +1,18 @@
 packages:
   - extension
   - 'build_defs/*'
+
 allowBuilds:
   '@vscode/vsce-sign': false
   core-js-pure: false
   dtrace-provider: false
   keytar: false
   re2: false
+
+minimumReleaseAgeExclude:
+  # Remove after 2026-07-28
+  - tar@7.5.22
+
 packageExtensions:
   "@secretlint/resolver":
     dependencies:

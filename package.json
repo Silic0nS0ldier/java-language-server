@@ -1,7 +1,4 @@
 {
-    "pnpm": {
-        "onlyBuiltDependencies": []
-    },
     "dependencies": {
         "@types/node": "^24.13.3",
         "renovate": "^43.279.1",
