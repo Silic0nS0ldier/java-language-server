@@ -95,3 +95,31 @@ jobs:
       - uses: devcontainers/ci@v0.3
         with:
           runCmd: echo "Built successfully"
+  dprint:
+    runs-on: ubuntu-24.04
+    if: ${{ !cancelled() }}
+    needs: renovate_tasks
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.renovate_tasks.outputs.commit_hash || github.head_ref }}
+      - name: Read tool versions from install.sh
+        id: versions
+        run: |
+          install_sh=./.devcontainer/feature-bazel/install.sh
+          dprint_version=$(grep -oP '^DPRINT_VERSION="\K[^"]+' "$install_sh")
+          gjf_version=$(grep -oP '^GOOGLE_JAVA_FORMAT_VERSION="\K[^"]+' "$install_sh")
+          echo "dprint=$dprint_version" >> "$GITHUB_OUTPUT"
+          echo "google_java_format=$gjf_version" >> "$GITHUB_OUTPUT"
+      - name: Install google-java-format
+        env:
+          GOOGLE_JAVA_FORMAT_VERSION: ${{ steps.versions.outputs.google_java_format }}
+        run: |
+          sudo curl -fsSL \
+            "https://github.com/google/google-java-format/releases/download/${GOOGLE_JAVA_FORMAT_VERSION}/google-java-format_linux-x86-64" \
+            -o /usr/local/bin/google-java-format
+          sudo chmod +x /usr/local/bin/google-java-format
+          google-java-format --version
+      - uses: dprint/check@v2.3
+        with:
+          dprint-version: ${{ steps.versions.outputs.dprint }}
