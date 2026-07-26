@@ -8,26 +8,26 @@ import org.javacs.FindHelper;
 import org.javacs.lsp.TextEdit;
 
 public class RemoveMethod implements Rewrite {
-    final String className, methodName;
-    final String[] erasedParameterTypes;
+  final String className, methodName;
+  final String[] erasedParameterTypes;
 
-    public RemoveMethod(String className, String methodName, String[] erasedParameterTypes) {
-        this.className = className;
-        this.methodName = methodName;
-        this.erasedParameterTypes = erasedParameterTypes;
-    }
+  public RemoveMethod(String className, String methodName, String[] erasedParameterTypes) {
+    this.className = className;
+    this.methodName = methodName;
+    this.erasedParameterTypes = erasedParameterTypes;
+  }
 
-    @Override
-    public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
-        var file = compiler.findTypeDeclaration(className);
-        if (file == CompilerProvider.NOT_FOUND) {
-            return CANCELLED;
-        }
-        try (var task = compiler.compile(file)) {
-            var methodElement = FindHelper.findMethod(task, className, methodName, erasedParameterTypes);
-            var methodTree = Trees.instance(task.task).getTree(methodElement);
-            TextEdit[] edits = {new EditHelper(task.task).removeTree(task.root(), methodTree)};
-            return Map.of(file, edits);
-        }
+  @Override
+  public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
+    var file = compiler.findTypeDeclaration(className);
+    if (file == CompilerProvider.NOT_FOUND) {
+      return CANCELLED;
     }
+    try (var task = compiler.compile(file)) {
+      var methodElement = FindHelper.findMethod(task, className, methodName, erasedParameterTypes);
+      var methodTree = Trees.instance(task.task).getTree(methodElement);
+      TextEdit[] edits = {new EditHelper(task.task).removeTree(task.root(), methodTree)};
+      return Map.of(file, edits);
+    }
+  }
 }

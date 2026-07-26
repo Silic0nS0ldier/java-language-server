@@ -1,17 +1,17 @@
 {
-    "type": "module",
-    "dependencies": {
-        "adm-zip": "^0.6.0",
-        "jsonc-parser": "^3.3.1",
-        "make-fetch-happen": "16.0.1",
-        "ssri": "^14.0.0",
-        "tar": "^7.5.22",
-        "vscode-languageclient": "^10.1.0"
-    },
-    "devDependencies": {
-        "@types/adm-zip": "^0.5.8",
-        "@types/make-fetch-happen": "10.0.4",
-        "@types/ssri": "^7.1.5",
-        "@types/vscode": "^1.125.0"
-    }
+  "type": "module",
+  "dependencies": {
+    "adm-zip": "^0.6.0",
+    "jsonc-parser": "^3.3.1",
+    "make-fetch-happen": "16.0.1",
+    "ssri": "^14.0.0",
+    "tar": "^7.5.22",
+    "vscode-languageclient": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/make-fetch-happen": "10.0.4",
+    "@types/ssri": "^7.1.5",
+    "@types/vscode": "^1.125.0"
+  }
 }

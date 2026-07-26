@@ -1,39 +1,39 @@
 package org.javacs.debug.proto;
 
 public interface DebugServer {
-    Capabilities initialize(InitializeRequestArguments req);
+  Capabilities initialize(InitializeRequestArguments req);
 
-    SetBreakpointsResponseBody setBreakpoints(SetBreakpointsArguments req);
+  SetBreakpointsResponseBody setBreakpoints(SetBreakpointsArguments req);
 
-    SetFunctionBreakpointsResponseBody setFunctionBreakpoints(SetFunctionBreakpointsArguments req);
+  SetFunctionBreakpointsResponseBody setFunctionBreakpoints(SetFunctionBreakpointsArguments req);
 
-    void setExceptionBreakpoints(SetExceptionBreakpointsArguments req);
+  void setExceptionBreakpoints(SetExceptionBreakpointsArguments req);
 
-    void configurationDone();
+  void configurationDone();
 
-    void launch(LaunchRequestArguments req);
+  void launch(LaunchRequestArguments req);
 
-    void attach(AttachRequestArguments req);
+  void attach(AttachRequestArguments req);
 
-    void disconnect(DisconnectArguments req);
+  void disconnect(DisconnectArguments req);
 
-    void terminate(TerminateArguments req);
+  void terminate(TerminateArguments req);
 
-    void continue_(ContinueArguments req);
+  void continue_(ContinueArguments req);
 
-    void next(NextArguments req);
+  void next(NextArguments req);
 
-    void stepIn(StepInArguments req);
+  void stepIn(StepInArguments req);
 
-    void stepOut(StepOutArguments req);
+  void stepOut(StepOutArguments req);
 
-    ThreadsResponseBody threads();
+  ThreadsResponseBody threads();
 
-    StackTraceResponseBody stackTrace(StackTraceArguments req);
+  StackTraceResponseBody stackTrace(StackTraceArguments req);
 
-    ScopesResponseBody scopes(ScopesArguments req);
+  ScopesResponseBody scopes(ScopesArguments req);
 
-    VariablesResponseBody variables(VariablesArguments req);
+  VariablesResponseBody variables(VariablesArguments req);
 
-    EvaluateResponseBody evaluate(EvaluateArguments req);
+  EvaluateResponseBody evaluate(EvaluateArguments req);
 }

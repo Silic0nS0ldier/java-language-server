@@ -3,17 +3,17 @@ package org.javacs.lsp;
 import java.util.List;
 
 public class Hover {
-    public List<MarkedString> contents;
-    public Range range;
+  public List<MarkedString> contents;
+  public Range range;
 
-    public Hover() {}
+  public Hover() {}
 
-    public Hover(List<MarkedString> contents) {
-        this.contents = contents;
-    }
+  public Hover(List<MarkedString> contents) {
+    this.contents = contents;
+  }
 
-    public Hover(List<MarkedString> contents, Range range) {
-        this.contents = contents;
-        this.range = range;
-    }
+  public Hover(List<MarkedString> contents, Range range) {
+    this.contents = contents;
+    this.range = range;
+  }
 }

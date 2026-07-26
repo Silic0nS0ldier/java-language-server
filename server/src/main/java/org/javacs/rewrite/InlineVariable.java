@@ -6,16 +6,16 @@ import org.javacs.CompilerProvider;
 import org.javacs.lsp.TextEdit;
 
 class InlineVariable implements Rewrite {
-    final String className;
-    final int position;
+  final String className;
+  final int position;
 
-    InlineVariable(String className, int position) {
-        this.className = className;
-        this.position = position;
-    }
+  InlineVariable(String className, int position) {
+    this.className = className;
+    this.position = position;
+  }
 
-    @Override
-    public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
-        return Rewrite.CANCELLED;
-    }
+  @Override
+  public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
+    return Rewrite.CANCELLED;
+  }
 }

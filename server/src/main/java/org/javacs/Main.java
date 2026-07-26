@@ -6,36 +6,36 @@ import java.util.logging.Logger;
 import org.javacs.lsp.*;
 
 public class Main {
-    // A source of truth for output that cannot use the standard logging infra
-    public static boolean showMiscLogging = true;
+  // A source of truth for output that cannot use the standard logging infra
+  public static boolean showMiscLogging = true;
 
-    private static final Logger LOG = Logger.getLogger("main");
+  private static final Logger LOG = Logger.getLogger("main");
 
-    public static void setRootFormat() {
-        var root = Logger.getLogger("");
+  public static void setRootFormat() {
+    var root = Logger.getLogger("");
 
-        for (var h : root.getHandlers()) {
-            h.setFormatter(new LogFormat());
-        }
+    for (var h : root.getHandlers()) {
+      h.setFormatter(new LogFormat());
+    }
+  }
+
+  public static void main(String[] args) {
+    boolean quiet = Arrays.stream(args).anyMatch("--quiet"::equals);
+
+    if (quiet) {
+      LOG.setLevel(Level.OFF);
+      showMiscLogging = false;
     }
 
-    public static void main(String[] args) {
-        boolean quiet = Arrays.stream(args).anyMatch("--quiet"::equals);
+    try {
+      // Logger.getLogger("").addHandler(new FileHandler("javacs.%u.log", false));
+      setRootFormat();
 
-        if (quiet) {
-            LOG.setLevel(Level.OFF);
-            showMiscLogging = false;
-        }
+      LSP.connect(JavaLanguageServer::new, System.in, System.out);
+    } catch (Throwable t) {
+      LOG.log(Level.SEVERE, t.getMessage(), t);
 
-        try {
-            // Logger.getLogger("").addHandler(new FileHandler("javacs.%u.log", false));
-            setRootFormat();
-
-            LSP.connect(JavaLanguageServer::new, System.in, System.out);
-        } catch (Throwable t) {
-            LOG.log(Level.SEVERE, t.getMessage(), t);
-
-            System.exit(1);
-        }
+      System.exit(1);
     }
+  }
 }

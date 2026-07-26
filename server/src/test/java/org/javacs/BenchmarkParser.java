@@ -10,20 +10,20 @@ import org.openjdk.jmh.annotations.*;
 @Fork(1)
 public class BenchmarkParser {
 
-    @State(Scope.Benchmark)
-    public static class CompilerState {
-        public Path file = Paths.get("src/main/java/org/javacs/JavaLanguageServer.java").normalize();
-    }
+  @State(Scope.Benchmark)
+  public static class CompilerState {
+    public Path file = Paths.get("src/main/java/org/javacs/JavaLanguageServer.java").normalize();
+  }
 
-    @Benchmark
-    public void parse(CompilerState state) {
-        Parser.parseFile(state.file);
-    }
+  @Benchmark
+  public void parse(CompilerState state) {
+    Parser.parseFile(state.file);
+  }
 
-    public static void main(String[] args) {
-        var state = new CompilerState();
-        while (true) {
-            Parser.parseFile(state.file);
-        }
+  public static void main(String[] args) {
+    var state = new CompilerState();
+    while (true) {
+      Parser.parseFile(state.file);
     }
+  }
 }

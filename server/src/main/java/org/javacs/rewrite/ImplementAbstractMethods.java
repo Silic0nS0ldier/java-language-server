@@ -19,53 +19,55 @@ import org.javacs.lsp.Range;
 import org.javacs.lsp.TextEdit;
 
 public class ImplementAbstractMethods implements Rewrite {
-    final String className;
+  final String className;
 
-    public ImplementAbstractMethods(String className) {
-        this.className = className;
-    }
+  public ImplementAbstractMethods(String className) {
+    this.className = className;
+  }
 
-    @Override
-    public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
-        var file = compiler.findTypeDeclaration(className);
-        var insertText = new StringJoiner("\n");
-        try (var task = compiler.compile(file)) {
-            var elements = task.task.getElements();
-            var types = task.task.getTypes();
-            var trees = Trees.instance(task.task);
-            var thisClass = elements.getTypeElement(className);
-            var thisType = (DeclaredType) thisClass.asType();
-            var thisTree = trees.getTree(thisClass);
-            var indent = EditHelper.indent(task.task, task.root(), thisTree) + 4;
-            for (var member : elements.getAllMembers(thisClass)) {
-                if (member.getKind() == ElementKind.METHOD && member.getModifiers().contains(Modifier.ABSTRACT)) {
-                    var method = (ExecutableElement) member;
-                    var source = findSource(compiler, task, method);
-                    if (source == null) {
-                        LOG.warning("...couldn't find source for " + method);
-                    }
-                    var parameterizedType = (ExecutableType) types.asMemberOf(thisType, method);
-                    var text = EditHelper.printMethod(method, parameterizedType, source);
-                    text = text.replaceAll("\n", "\n" + " ".repeat(indent));
-                    insertText.add(text);
-                }
-            }
-            var insert = EditHelper.insertAtEndOfClass(task.task, task.root(), thisTree);
-            TextEdit[] edits = {new TextEdit(new Range(insert, insert), insertText + "\n")};
-            return Map.of(file, edits);
+  @Override
+  public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
+    var file = compiler.findTypeDeclaration(className);
+    var insertText = new StringJoiner("\n");
+    try (var task = compiler.compile(file)) {
+      var elements = task.task.getElements();
+      var types = task.task.getTypes();
+      var trees = Trees.instance(task.task);
+      var thisClass = elements.getTypeElement(className);
+      var thisType = (DeclaredType) thisClass.asType();
+      var thisTree = trees.getTree(thisClass);
+      var indent = EditHelper.indent(task.task, task.root(), thisTree) + 4;
+      for (var member : elements.getAllMembers(thisClass)) {
+        if (member.getKind() == ElementKind.METHOD
+            && member.getModifiers().contains(Modifier.ABSTRACT)) {
+          var method = (ExecutableElement) member;
+          var source = findSource(compiler, task, method);
+          if (source == null) {
+            LOG.warning("...couldn't find source for " + method);
+          }
+          var parameterizedType = (ExecutableType) types.asMemberOf(thisType, method);
+          var text = EditHelper.printMethod(method, parameterizedType, source);
+          text = text.replaceAll("\n", "\n" + " ".repeat(indent));
+          insertText.add(text);
         }
+      }
+      var insert = EditHelper.insertAtEndOfClass(task.task, task.root(), thisTree);
+      TextEdit[] edits = {new TextEdit(new Range(insert, insert), insertText + "\n")};
+      return Map.of(file, edits);
     }
+  }
 
-    private MethodTree findSource(CompilerProvider compiler, CompileTask task, ExecutableElement method) {
-        var superClass = (TypeElement) method.getEnclosingElement();
-        var superClassName = superClass.getQualifiedName().toString();
-        var methodName = method.getSimpleName().toString();
-        var erasedParameterTypes = FindHelper.erasedParameterTypes(task, method);
-        var sourceFile = compiler.findAnywhere(superClassName);
-        if (sourceFile.isEmpty()) return null;
-        var parse = compiler.parse(sourceFile.get());
-        return FindHelper.findMethod(parse, superClassName, methodName, erasedParameterTypes);
-    }
+  private MethodTree findSource(
+      CompilerProvider compiler, CompileTask task, ExecutableElement method) {
+    var superClass = (TypeElement) method.getEnclosingElement();
+    var superClassName = superClass.getQualifiedName().toString();
+    var methodName = method.getSimpleName().toString();
+    var erasedParameterTypes = FindHelper.erasedParameterTypes(task, method);
+    var sourceFile = compiler.findAnywhere(superClassName);
+    if (sourceFile.isEmpty()) return null;
+    var parse = compiler.parse(sourceFile.get());
+    return FindHelper.findMethod(parse, superClassName, methodName, erasedParameterTypes);
+  }
 
-    private static final Logger LOG = Logger.getLogger("main");
+  private static final Logger LOG = Logger.getLogger("main");
 }

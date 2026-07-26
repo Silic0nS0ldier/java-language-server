@@ -6,20 +6,22 @@ import org.javacs.CompilerProvider;
 import org.javacs.lsp.TextEdit;
 
 public class ChangeMethodAccess implements Rewrite {
-    final String className, methodName;
-    final String[] erasedParameterTypes;
-    /** 0 = private; 1 = package-private; 2 = protected; 3 = public */
-    final int newAccess;
+  final String className, methodName;
+  final String[] erasedParameterTypes;
 
-    public ChangeMethodAccess(String className, String methodName, String[] erasedParameterTypes, int newAccess) {
-        this.className = className;
-        this.methodName = methodName;
-        this.erasedParameterTypes = erasedParameterTypes;
-        this.newAccess = newAccess;
-    }
+  /** 0 = private; 1 = package-private; 2 = protected; 3 = public */
+  final int newAccess;
 
-    @Override
-    public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
-        return CANCELLED;
-    }
+  public ChangeMethodAccess(
+      String className, String methodName, String[] erasedParameterTypes, int newAccess) {
+    this.className = className;
+    this.methodName = methodName;
+    this.erasedParameterTypes = erasedParameterTypes;
+    this.newAccess = newAccess;
+  }
+
+  @Override
+  public Map<Path, TextEdit[]> rewrite(CompilerProvider compiler) {
+    return CANCELLED;
+  }
 }

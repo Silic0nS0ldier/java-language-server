@@ -7,11 +7,13 @@ See [`./extension/vsix/README.md`](./extension/vsix/README.md) for more details.
 ## Building
 
 For development builds
+
 ```sh
 bazel build //extension/vsix:java_bazel_language_support --stamp
 ```
 
 For release
+
 1. Increment version in `extension/vsix/package.json`
 2. `bazel build //extension/vsix:java_bazel_language_support`
 
@@ -21,7 +23,7 @@ The Java language server uses the [Java compiler API](https://docs.oracle.com/ja
 
 ### Incremental updates
 
-The Java compiler API provides incremental compilation at the level of files: you can create a long-lived instance of the Java compiler, and as the user edits, you only need to recompile files that have changed. The Java language server optimizes this further by *focusing* compilation on the region of interest by erasing irrelevant code. For example, suppose we want to provide autocomplete after `print` in the below code:
+The Java compiler API provides incremental compilation at the level of files: you can create a long-lived instance of the Java compiler, and as the user edits, you only need to recompile files that have changed. The Java language server optimizes this further by _focusing_ compilation on the region of interest by erasing irrelevant code. For example, suppose we want to provide autocomplete after `print` in the below code:
 
 ```java
 class Printer {

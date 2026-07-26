@@ -4,6 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CodeActionContext {
-    public List<Diagnostic> diagnostics = new ArrayList<>();
-    public List<String> only;
+  public List<Diagnostic> diagnostics = new ArrayList<>();
+  public List<String> only;
 }

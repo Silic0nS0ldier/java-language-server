@@ -1,11 +1,11 @@
 package org.javacs.lsp;
 
 public class DocumentLinkParams {
-    public TextDocumentIdentifier textDocument;
+  public TextDocumentIdentifier textDocument;
 
-    public DocumentLinkParams() {}
+  public DocumentLinkParams() {}
 
-    public DocumentLinkParams(TextDocumentIdentifier textDocument) {
-        this.textDocument = textDocument;
-    }
+  public DocumentLinkParams(TextDocumentIdentifier textDocument) {
+    this.textDocument = textDocument;
+  }
 }
