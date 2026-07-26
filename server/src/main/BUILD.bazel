@@ -27,7 +27,7 @@ java_library(
     add_exports = add_exports,
     add_opens = add_opens,
     plugins = [
-        ":nullaway",
+        "//build_defs/java_plugins:nullaway",
     ],
     visibility = ["//server/src/test:__pkg__"],
 )
@@ -57,10 +57,3 @@ java_single_jar(
     visibility =  ["//extension/vsix:__pkg__"],
 )
 
-
-java_plugin(
-    name = "nullaway",
-    deps = [
-        "@maven//:com_uber_nullaway_nullaway",
-    ],
-)
