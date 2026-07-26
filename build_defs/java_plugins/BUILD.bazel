@@ -1,0 +1,9 @@
+load("@rules_java//java:defs.bzl", "java_plugin")
+
+java_plugin(
+    name = "nullaway",
+    deps = [
+        "@maven//:com_uber_nullaway_nullaway",
+    ],
+    visibility = ["//visibility:public"],
+)
