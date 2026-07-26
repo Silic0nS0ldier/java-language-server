@@ -1,8 +1,8 @@
 {
-    "private": true,
-    "type": "module",
-    "dependencies": {
-        "@vscode/vsce": "^3.9.2",
-        "cleye": "^2.6.0"
-    }
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vscode/vsce": "^3.9.2",
+    "cleye": "^2.6.0"
+  }
 }

@@ -8,19 +8,20 @@ import java.util.*;
 import org.junit.*;
 
 public class JavaCompilerServiceTest {
-    static {
-        Main.setRootFormat();
-    }
+  static {
+    Main.setRootFormat();
+  }
 
-    private JavaCompilerService compiler =
-            new JavaCompilerService(Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+  private JavaCompilerService compiler =
+      new JavaCompilerService(
+          Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 
-    static Path simpleProjectSrc() {
-        return Paths.get("examples/simple-project").normalize();
-    }
+  static Path simpleProjectSrc() {
+    return Paths.get("examples/simple-project").normalize();
+  }
 
-    @Before
-    public void setWorkspaceRoot() {
-        FileStore.setWorkspaceRoots(Set.of(simpleProjectSrc()));
-    }
+  @Before
+  public void setWorkspaceRoot() {
+    FileStore.setWorkspaceRoots(Set.of(simpleProjectSrc()));
+  }
 }

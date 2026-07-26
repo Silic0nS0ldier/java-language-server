@@ -1,19 +1,19 @@
 package org.javacs.lsp;
 
 public class JavaStartProgressParams {
-    private String message;
+  private String message;
 
-    public JavaStartProgressParams() {}
+  public JavaStartProgressParams() {}
 
-    public JavaStartProgressParams(String message) {
-        this.message = message;
-    }
+  public JavaStartProgressParams(String message) {
+    this.message = message;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 }

@@ -1,6 +1,7 @@
 # Todo
 
-## Bugs 
+## Bugs
+
 - Deleting file doesn't clear it from javac
 - When you move a class to a different package, compiler still thinks it's in the old package
 - External delete causes find-references to crash because it's still in FileStore.javaSources()
@@ -23,10 +24,12 @@
 - Temporary files created for Bazel command output are not cleaned up.
 
 ## Optimizations
+
 - Compilation is very slow in the presence of lots of errors
 - Use package graph to limit search for find-usages/goto-def
 
 # Features
+
 - Autocomplete new method name based on "no such method" errors.
 - Search for methods in source and deps based on return type, parameters
 - "Find implementations" code lens on interfaces
@@ -38,22 +41,22 @@
 - Show classpath and JDK sources in debugger
 - Warn for impossible null checks
 
-
 ## Refactorings
+
 - Quick fixes
-    - Remove parameter
-    - Create missing method
-    - public is redundant in interface methods
-    - static, final are redundant in interfaces inners
-    - Fix all imports in package
+  - Remove parameter
+  - Create missing method
+  - public is redundant in interface methods
+  - static, final are redundant in interfaces inners
+  - Fix all imports in package
 - Selection
-    - Extract constant
-    - Extract variable
-    - Extract method
-    - Change package
-    - Add parameter
-    - Inline
-    - Implement single abstract method
-    - Generate cases for enum
+  - Extract constant
+  - Extract variable
+  - Extract method
+  - Change package
+  - Add parameter
+  - Inline
+  - Implement single abstract method
+  - Generate cases for enum
 - Code lens
-    - Inherited methods
+  - Inherited methods

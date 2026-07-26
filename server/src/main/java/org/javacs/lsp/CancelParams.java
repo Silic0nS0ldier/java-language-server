@@ -1,5 +1,5 @@
 package org.javacs.lsp;
 
 public class CancelParams {
-    public int id;
+  public int id;
 }

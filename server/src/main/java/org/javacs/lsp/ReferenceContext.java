@@ -1,5 +1,5 @@
 package org.javacs.lsp;
 
 public class ReferenceContext {
-    public boolean includeDeclaration;
+  public boolean includeDeclaration;
 }

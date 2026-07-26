@@ -9,14 +9,14 @@ import org.junit.Test;
 
 public class FileStoreTest {
 
-    @Before
-    public void setWorkspaceRoot() {
-        FileStore.setWorkspaceRoots(Set.of(LanguageServerFixture.DEFAULT_WORKSPACE_ROOT));
-    }
+  @Before
+  public void setWorkspaceRoot() {
+    FileStore.setWorkspaceRoots(Set.of(LanguageServerFixture.DEFAULT_WORKSPACE_ROOT));
+  }
 
-    @Test
-    public void packageName() {
-        var file = FindResource.path("/org/javacs/example/Goto.java");
-        assertThat(FileStore.suggestedPackageName(file), equalTo("org.javacs.example"));
-    }
+  @Test
+  public void packageName() {
+    var file = FindResource.path("/org/javacs/example/Goto.java");
+    assertThat(FileStore.suggestedPackageName(file), equalTo("org.javacs.example"));
+  }
 }

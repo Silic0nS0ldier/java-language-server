@@ -1,28 +1,28 @@
 {
-	"name": "Java Language Server",
-	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-	"features": {
-		"./feature-bazel": {},
-		"ghcr.io/devcontainers/features/java:1": {
-			"version": "21"
-		},
-		"ghcr.io/devcontainers/features/rust:1": {
-			"version": "1.83.0"
-		}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"bazelbuild.vscode-bazel",
-				"siliconsoldier.java-with-bazel",
-				"-vscjava.vscode-java-pack",
-				"-dbaeumer.vscode-eslint"
-			],
-			"settings": {
-				"bazel.enableCodeLens": true,
-				"bazel.lsp.command": "starpls",
-				"bazel.lsp.args": ["server"]
-			}
-		}
-	}
+  "name": "Java Language Server",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "./feature-bazel": {},
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "1.83.0"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bazelbuild.vscode-bazel",
+        "siliconsoldier.java-with-bazel",
+        "-vscjava.vscode-java-pack",
+        "-dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "bazel.enableCodeLens": true,
+        "bazel.lsp.command": "starpls",
+        "bazel.lsp.args": ["server"]
+      }
+    }
+  }
 }

@@ -12,24 +12,24 @@ import org.junit.Test;
 
 public class JavaLanguageServerTest {
 
-    @Test
-    public void LintShouldNotCrashOnCodeWithMissingTypeIdentifier() {
-        String filePath = "examples/missing-type-identifier/Sample.java";
-        TextDocumentItem textDocument = new TextDocumentItem();
-        textDocument.uri = URI.create("file:///" + filePath);
-        try {
-            textDocument.text = Files.readString(Path.of(filePath));
-        } catch (IOException e) {
-            if (org.javacs.Main.showMiscLogging) {
-                System.out.println(e.toString());
-            }
-        }
-        textDocument.version = 1;
-        textDocument.languageId = "java";
-        JavaLanguageServer server = LanguageServerFixture.getJavaLanguageServer();
-        server.didOpenTextDocument(new DidOpenTextDocumentParams(textDocument));
-
-        // Should not fail
-        server.lint(Collections.singleton(Paths.get(textDocument.uri)));
+  @Test
+  public void LintShouldNotCrashOnCodeWithMissingTypeIdentifier() {
+    String filePath = "examples/missing-type-identifier/Sample.java";
+    TextDocumentItem textDocument = new TextDocumentItem();
+    textDocument.uri = URI.create("file:///" + filePath);
+    try {
+      textDocument.text = Files.readString(Path.of(filePath));
+    } catch (IOException e) {
+      if (org.javacs.Main.showMiscLogging) {
+        System.out.println(e.toString());
+      }
     }
+    textDocument.version = 1;
+    textDocument.languageId = "java";
+    JavaLanguageServer server = LanguageServerFixture.getJavaLanguageServer();
+    server.didOpenTextDocument(new DidOpenTextDocumentParams(textDocument));
+
+    // Should not fail
+    server.lint(Collections.singleton(Paths.get(textDocument.uri)));
+  }
 }

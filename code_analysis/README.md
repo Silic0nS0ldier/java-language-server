@@ -48,14 +48,14 @@ var elements = model.elements();
 
 ## Key Types
 
-| Type | Purpose |
-|---|---|
-| `SourceText` | Immutable representation of a source file (URI + content + version) |
-| `Compilation` | Immutable result of compiling sources — syntax trees, diagnostics, semantic model |
+| Type                  | Purpose                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `SourceText`          | Immutable representation of a source file (URI + content + version)                   |
+| `Compilation`         | Immutable result of compiling sources — syntax trees, diagnostics, semantic model     |
 | `IncrementalCompiler` | Stateful compiler that reuses javac state across compilations for fast re-compilation |
-| `CompilerOptions` | Configuration for compilation (classpath, compiler flags) |
-| `SemanticModel` | Access to javac's `Trees`, `Elements`, and `Types` for semantic queries |
-| `CompilationPhase` | Tracks compilation progress (`PARSED`, `ANALYZED`) |
+| `CompilerOptions`     | Configuration for compilation (classpath, compiler flags)                             |
+| `SemanticModel`       | Access to javac's `Trees`, `Elements`, and `Types` for semantic queries               |
+| `CompilationPhase`    | Tracks compilation progress (`PARSED`, `ANALYZED`)                                    |
 
 ## Incremental Compilation
 
@@ -153,10 +153,10 @@ separate `IncrementalCompiler` instances.
 The library targets `--release 21` bytecode and is validated against the
 following JDK runtimes:
 
-| Runtime           | Status  |
-|-------------------|---------|
-| JDK 21 (LTS)      | Tested  |
-| JDK 25 (LTS)      | Tested  |
+| Runtime      | Status |
+| ------------ | ------ |
+| JDK 21 (LTS) | Tested |
+| JDK 25 (LTS) | Tested |
 
 Because `code_analysis` calls internal `com.sun.tools.javac.*` APIs, behaviour
 can shift between JDK feature releases (e.g. `Log.clear()` changed from
@@ -186,7 +186,7 @@ immediately clear which runtime regressed.
 bazel test //code_analysis:tests_jdk21   # or :tests_jdk25
 ```
 
-You can also change the *ambient* runtime used by every Java target in the
+You can also change the _ambient_ runtime used by every Java target in the
 repo — useful when experimenting outside the test suite:
 
 ```bash

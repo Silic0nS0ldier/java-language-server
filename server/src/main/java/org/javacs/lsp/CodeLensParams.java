@@ -1,11 +1,11 @@
 package org.javacs.lsp;
 
 public class CodeLensParams {
-    public TextDocumentIdentifier textDocument;
+  public TextDocumentIdentifier textDocument;
 
-    public CodeLensParams() {}
+  public CodeLensParams() {}
 
-    public CodeLensParams(TextDocumentIdentifier textDocument) {
-        this.textDocument = textDocument;
-    }
+  public CodeLensParams(TextDocumentIdentifier textDocument) {
+    this.textDocument = textDocument;
+  }
 }
