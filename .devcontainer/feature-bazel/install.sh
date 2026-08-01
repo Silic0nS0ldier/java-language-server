@@ -16,7 +16,7 @@ STARPLS_VERSION="v0.1.22"
 # renovate: datasource=npm depName=pnpm
 PNPM_VERSION="11.17.0"
 # renovate: datasource=github-tags depName=nodejs/node
-NODE_VERSION="v26.5.0"
+NODE_VERSION="v26.5.1"
 # renovate: datasource=github-releases depName=dprint/dprint
 DPRINT_VERSION="0.55.2"
 # renovate: datasource=github-releases depName=google/google-java-format
