@@ -20,7 +20,7 @@ NODE_VERSION="v26.5.0"
 # renovate: datasource=github-releases depName=dprint/dprint
 DPRINT_VERSION="0.55.2"
 # renovate: datasource=github-releases depName=google/google-java-format
-GOOGLE_JAVA_FORMAT_VERSION="v1.35.0"
+GOOGLE_JAVA_FORMAT_VERSION="v1.36.1"
 
 if [[ $ARCH == "arm64" ]] || [[ $ARCH == "aarch64" ]]; then
     curl "https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-arm64" -Lo /usr/local/bin/bazel
