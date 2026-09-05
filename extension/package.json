@@ -12,6 +12,6 @@
     "@types/adm-zip": "^0.5.8",
     "@types/make-fetch-happen": "10.0.4",
     "@types/ssri": "^7.1.5",
-    "@types/vscode": "^1.125.0"
+    "@types/vscode": "^1.136.0"
   }
 }
